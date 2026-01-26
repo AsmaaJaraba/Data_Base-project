@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الطلبات - مكتبة بيرزيت</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+       
+        :root {
+            --primary: #1a365d;
+            --secondary: #2d50a3;
+            --success: #28A745;
+            --warning: #FF6B35;
+            --danger: #DC3545;
+            --info: #17A2B8;
+            --light: #F8F9FA;
+            --dark: #343A40;
+            --white: #FFFFFF;
+            --gray: #6C757D;
+            --border: #E0E0E0;
+            --shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+            --radius: 10px;
+            --transition: all 0.3s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', 'Tahoma', Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        button { cursor: pointer; font-family: inherit; }
+
+        .app-container { display: flex; min-height: 100vh; }
+
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--white);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: var(--transition);
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .sidebar-header h1 { font-size: 1.4rem; margin-bottom: 0.5rem; }
+        .sidebar-header span { font-size: 0.85rem; opacity: 0.8; }
+
+        .nav-menu { padding: 1.5rem 0; }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.9rem 1.5rem;
+            margin: 0.3rem 0;
+            color: rgba(255, 255, 255, 0.9);
+            border-right: 4px solid transparent;
+            transition: var(--transition);
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.1);
+            border-right-color: var(--warning);
+            color: var(--white);
+        }
+
+        .nav-icon { width: 24px; text-align: center; margin-left: 10px; }
+        .nav-text { font-size: 0.95rem; }
+
+        .logout-item {
+            margin-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 1rem;
+        }
+
+        .main-content { flex: 1; margin-right: 250px; padding: 1.5rem; }
+
+        .top-bar {
+            background: var(--white);
+            padding: 1.2rem 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title h1 { color: var(--primary); font-size: 1.8rem; margin-bottom: 0.3rem; }
+        .page-title p { color: var(--gray); font-size: 0.9rem; }
+
+        .stats-container { display: flex; gap: 1rem; }
+
+        .stat-card {
+            background: var(--light);
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            text-align: center;
+            min-width: 140px;
+        }
+
+        .stat-value { font-size: 1.8rem; font-weight: bold; color: var(--primary); margin-bottom: 0.3rem; }
+        .stat-label { font-size: 0.85rem; color: var(--gray); }
+
+        .filters-section {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .filter-label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--dark); font-size: 0.9rem; }
+
+        .filter-input,
+        .filter-select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .filter-input:focus,
+        .filter-select:focus { border-color: var(--secondary); outline: none; }
+
+        .filter-actions { display: flex; gap: 0.8rem; justify-content: flex-end; padding-top: 0.5rem; }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .btn-primary { background: var(--primary); color: var(--white); }
+        .btn-primary:hover { background: var(--secondary); }
+
+        .btn-secondary { background: var(--gray); color: var(--white); }
+        .btn-secondary:hover { background: #5a6268; }
+
+        .orders-section {
+            background: var(--white);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .table-responsive { overflow-x: auto; }
+
+        .orders-table { width: 100%; border-collapse: collapse; min-width: 800px; }
+
+        .orders-table th {
+            background: var(--primary);
+            color: var(--white);
+            padding: 1rem;
+            text-align: right;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .orders-table td { padding: 1rem; border-bottom: 1px solid var(--border); }
+        .orders-table tr:last-child td { border-bottom: none; }
+        .orders-table tr:hover { background: var(--light); }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+  
+        .status-new { background: #d4edda; color: var(--success); }
+        .status-processing { background: #cce5ff; color: #007bff; }
+        .status-shipped { background: #fff3cd; color: #e0a800; }
+        .status-cancelled { background: #f8d7da; color: var(--danger); }
+
+        .action-buttons { display: flex; gap: 0.5rem; }
+
+        .btn-action {
+            padding: 0.5rem 0.8rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .btn-view { background: var(--primary); color: var(--white); }
+        .btn-edit { background: var(--success); color: var(--white); }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; right: 0; bottom: 0; left: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .modal-content {
+            background: var(--white);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title { color: var(--primary); font-size: 1.4rem; }
+
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--gray);
+            cursor: pointer;
+            padding: 0;
+            width: 30px; height: 30px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .modal-body { padding: 1.5rem; }
+
+        .order-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-card { background: var(--light); padding: 1.5rem; border-radius: var(--radius); }
+        .info-card h3 { color: var(--secondary); margin-bottom: 1rem; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem; }
+
+        .info-row { margin-bottom: 0.8rem; display: flex; justify-content: space-between; gap: 1rem; }
+        .info-label { font-weight: 500; color: var(--dark); }
+        .info-value { color: var(--gray); text-align: left; direction: ltr; }
+
+        @media (max-width: 1200px) {
+            .sidebar { width: 70px; }
+            .main-content { margin-right: 70px; }
+            .nav-text, .sidebar-header span, .sidebar-header h1 { display: none; }
+            .nav-item { justify-content: center; padding: 1rem 0; }
+            .nav-icon { margin: 0; }
+        }
+
+        @media (max-width: 992px) {
+            .top-bar { flex-direction: column; gap: 1rem; text-align: center; }
+            .stats-container { justify-content: center; flex-wrap: wrap; }
+            .stat-card { min-width: 120px; flex: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .main-content { padding: 1rem; }
+            .filter-row { grid-template-columns: 1fr; }
+            .filter-actions { justify-content: stretch; }
+            .btn { flex: 1; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h1>مكتبة بيرزيت</h1>
+            <span>لوحة التحكم</span>
+        </div>
+
+        <nav class="nav-menu">
+            <a href="/admin/dashboard" class="nav-item">
+                <i class="fas fa-tachometer-alt nav-icon"></i>
+                <span class="nav-text">اللوحة الرئيسية</span>
+            </a>
+            <a href="/admin/products" class="nav-item">
+                <i class="fas fa-book nav-icon"></i>
+                <span class="nav-text">إدارة المنتجات</span>
+            </a>
+            <a href="/admin/orders" class="nav-item active">
+                <i class="fas fa-shopping-cart nav-icon"></i>
+                <span class="nav-text">إدارة الطلبات</span>
+            </a>
+            <a href="users.html" class="nav-item">
+                <i class="fas fa-users nav-icon"></i>
+                <span class="nav-text">إدارة المستخدمين</span>
+            </a>
+            <a href="/admin/branches" class="nav-item">
+                <i class="fas fa-map-marker-alt nav-icon"></i>
+                <span class="nav-text">إدارة الفروع</span>
+            </a>
+            <a href="/admin/reports" class="nav-item">
+                <i class="fas fa-chart-bar nav-icon"></i>
+                <span class="nav-text">التقارير</span>
+            </a>
+            <a href="/admin/settings" class="nav-item">
+                <i class="fas fa-cog nav-icon"></i>
+                <span class="nav-text">الإعدادات</span>
+            </a>
+            <a href="/" class="nav-item logout-item">
+                <i class="fas fa-sign-out-alt nav-icon"></i>
+                <span class="nav-text">تسجيل الخروج</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <!-- TOP BAR -->
+        <div class="top-bar">
+            <div class="page-title">
+                <h1>إدارة الطلبات</h1>
+                <p>عرض وتعديل ومتابعة جميع طلبات العملاء</p>
+            </div>
+
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-value" id="statNew">0</div>
+                    <div class="stat-label">طلبات جديدة</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statSales">$0</div>
+                    <div class="stat-label">إجمالي المبيعات</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statCompletion">0%</div>
+                    <div class="stat-label">معدل الإنجاز</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FILTERS SECTION -->
+        <section class="filters-section">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label class="filter-label">حالة الطلب</label>
+                    <select class="filter-select" id="statusFilter">
+                        <option value="">جميع الحالات</option>
+                        <option value="pending">معلّق</option>
+                        <option value="processing">قيد المعالجة</option>
+                        <option value="completed">مكتمل</option>
+                        <option value="canceled">ملغى</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">من تاريخ</label>
+                    <input type="date" class="filter-input" id="fromDate">
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">إلى تاريخ</label>
+                    <input type="date" class="filter-input" id="toDate">
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">رقم الطلب</label>
+                    <input type="text" class="filter-input" id="orderIdFilter" placeholder="ابحث برقم الطلب">
+                </div>
+            </div>
+
+            <div class="filter-actions">
+                <button class="btn btn-secondary" id="resetFilters">
+                    <i class="fas fa-redo"></i>
+                    إعادة تعيين
+                </button>
+                <button class="btn btn-primary" id="applyFilters">
+                    <i class="fas fa-filter"></i>
+                    تطبيق الفلتر
+                </button>
+            </div>
+        </section>
+
+        <!-- ORDERS TABLE -->
+        <section class="orders-section">
+            <div class="table-responsive">
+                <table class="orders-table">
+                    <thead>
+                    <tr>
+                        <th>رقم الطلب</th>
+                        <th>العميل</th>
+                        <th>التاريخ</th>
+                        <th>المبلغ</th>
+                        <th>حالة الطلب</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                    </thead>
+                    <tbody id="ordersTableBody"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+<!-- ORDER DETAILS MODAL -->
+<div class="modal" id="orderDetailsModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">تفاصيل الطلب #<span id="modalOrderId">0</span></h2>
+            <button class="btn-close" id="closeModal">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="order-info-grid">
+                <div class="info-card">
+                    <h3><i class="fas fa-user"></i> معلومات العميل</h3>
+                    <div class="info-row">
+                        <span class="info-label">الاسم:</span>
+                        <span class="info-value" id="customerName">—</span>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3><i class="fas fa-shopping-cart"></i> معلومات الطلب</h3>
+                    <div class="info-row">
+                        <span class="info-label">تاريخ الطلب:</span>
+                        <span class="info-value" id="orderDate">—</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">حالة الطلب:</span>
+                        <span class="info-value">
+                            <span class="status-badge status-new" id="orderStatus">—</span>
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">إجمالي الطلب:</span>
+                        <span class="info-value" id="orderTotal" style="color: var(--primary); font-weight: bold;">$0.00</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">ملاحظات:</span>
+                        <span class="info-value" id="orderNotes">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                <button class="btn btn-secondary" id="printOrder">
+                    <i class="fas fa-print"></i>
+                    طباعة
+                </button>
+                <button class="btn btn-edit" id="updateStatus" style="background: var(--success);">
+                    <i class="fas fa-sync"></i>
+                    تحديث الحالة
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- UPDATE STATUS MODAL -->
+<div class="modal" id="updateStatusModal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h2 class="modal-title">تحديث حالة الطلب</h2>
+            <button class="btn-close" id="closeStatusModal">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <div style="margin-bottom: 1.5rem;">
+                <p style="margin-bottom: 0.8rem; font-weight: 500;">حالة الطلب الحالية:</p>
+                <span class="status-badge status-new" id="currentStatus">—</span>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label class="filter-label">الحالة الجديدة</label>
+                <select class="filter-select" id="newStatusSelect">
+                    <option value="pending">معلّق</option>
+                    <option value="processing">قيد المعالجة</option>
+                    <option value="completed">مكتمل</option>
+                    <option value="canceled">ملغى</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label class="filter-label">ملاحظات (اختياري)</label>
+                <textarea class="filter-input" id="statusNotes" rows="3" style="resize: vertical;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button class="btn btn-secondary" id="cancelStatusUpdate">إلغاء</button>
+                <button class="btn btn-primary" id="saveStatusUpdate">حفظ التغييرات</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+  
+    let ordersData = {{ orders | tojson | safe }};
+
+  
+    const ALLOWED = new Set(["pending", "processing", "completed", "canceled"]);
+
+    function getStatusInfo(statusRaw) {
+        const status = (statusRaw || "").toLowerCase().trim();
+
+   
+        const statusMap = {
+            "pending":    { text: "معلّق",        class: "status-new" },       
+            "processing": { text: "قيد المعالجة", class: "status-processing" }, // blue
+            "completed":  { text: "مكتمل",        class: "status-shipped" },    // yellow
+            "canceled":   { text: "ملغى",         class: "status-cancelled" }   // red
+        };
+
+        return statusMap[status] || { text: "غير معروف", class: "status-new" };
+    }
+
+    function parseDateOnly(dt) {
+        if (!dt) return "";
+        return String(dt).slice(0, 10);
+    }
+
+    function updateStats(orders) {
+        const pendingCount = orders.filter(o => String(o.status).toLowerCase() === "pending").length;
+        const totalSales = orders.reduce((sum, o) => sum + (Number(o.total_price) || 0), 0);
+
+        const done = orders.filter(o => String(o.status).toLowerCase() === "completed").length;
+        const completion = orders.length ? Math.round((done / orders.length) * 100) : 0;
+
+        document.getElementById("statNew").textContent = pendingCount;
+        document.getElementById("statSales").textContent = "$" + totalSales.toFixed(2);
+        document.getElementById("statCompletion").textContent = completion + "%";
+    }
+
+    function renderOrdersTable(orders) {
+        const tableBody = document.getElementById("ordersTableBody");
+        tableBody.innerHTML = "";
+
+        orders.forEach(order => {
+            const statusInfo = getStatusInfo(order.status);
+
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td><strong>${order.order_id}</strong></td>
+                <td>${order.customer_name || "—"}</td>
+                <td>${order.order_date || "—"}</td>
+                <td>$${Number(order.total_price || 0).toFixed(2)}</td>
+                <td>
+                    <span class="status-badge ${statusInfo.class}">${statusInfo.text}</span>
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-action btn-view" data-id="${order.order_id}">
+                            <i class="fas fa-eye"></i> عرض
+                        </button>
+                        <button class="btn-action btn-edit" data-id="${order.order_id}">
+                            <i class="fas fa-edit"></i> تعديل
+                        </button>
+                    </div>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+
+        tableBody.querySelectorAll(".btn-view").forEach(btn => {
+            btn.addEventListener("click", () => viewOrderDetails(Number(btn.dataset.id)));
+        });
+        tableBody.querySelectorAll(".btn-edit").forEach(btn => {
+            btn.addEventListener("click", () => openUpdateStatus(Number(btn.dataset.id)));
+        });
+    }
+
+    function findOrder(orderId) {
+        return ordersData.find(o => Number(o.order_id) === Number(orderId));
+    }
+
+    function viewOrderDetails(orderId) {
+        const order = findOrder(orderId);
+        if (!order) return;
+
+        document.getElementById("modalOrderId").textContent = order.order_id;
+        document.getElementById("customerName").textContent = order.customer_name || "—";
+        document.getElementById("orderDate").textContent = order.order_date || "—";
+        document.getElementById("orderTotal").textContent = `$${Number(order.total_price || 0).toFixed(2)}`;
+        document.getElementById("orderNotes").textContent = order.notes || "—";
+
+        const statusInfo = getStatusInfo(order.status);
+        const statusBadge = document.getElementById("orderStatus");
+        statusBadge.className = `status-badge ${statusInfo.class}`;
+        statusBadge.textContent = statusInfo.text;
+
+        document.getElementById("orderDetailsModal").style.display = "flex";
+    }
+
+    function openUpdateStatus(orderId) {
+        const order = findOrder(orderId);
+        if (!order) return;
+
+        const statusInfo = getStatusInfo(order.status);
+        const cur = document.getElementById("currentStatus");
+        cur.className = `status-badge ${statusInfo.class}`;
+        cur.textContent = statusInfo.text;
+
+        // Ensure value matches DB ENUM
+        const s = String(order.status || "pending").toLowerCase().trim();
+        document.getElementById("newStatusSelect").value = ALLOWED.has(s) ? s : "pending";
+
+        document.getElementById("statusNotes").value = order.notes || "";
+        document.getElementById("saveStatusUpdate").dataset.orderId = orderId;
+
+        document.getElementById("updateStatusModal").style.display = "flex";
+    }
+
+    async function saveStatusToDB(orderId, status, notes) {
+        const s = String(status || "").toLowerCase().trim();
+        if (!ALLOWED.has(s)) {
+            throw new Error("Invalid status: " + s);
+        }
+
+        const res = await fetch(`/api/orders/${orderId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: s, notes: notes || "" })
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) {
+            throw new Error(data.error || "Failed to update order");
+        }
+    }
+
+
+    async function refreshFromServer() {
+        const res = await fetch("/api/orders");
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) return;
+
+        ordersData = data.orders || [];
+        updateStats(ordersData);
+        applyFilters(); 
+    }
+
+    function applyFilters() {
+        const status = document.getElementById("statusFilter").value;
+        const orderIdQuery = document.getElementById("orderIdFilter").value.trim().toLowerCase();
+        const fromDate = document.getElementById("fromDate").value;
+        const toDate = document.getElementById("toDate").value;
+
+        let filtered = [...ordersData];
+
+        if (status) filtered = filtered.filter(o => String(o.status).toLowerCase() === status);
+
+        if (orderIdQuery) {
+            filtered = filtered.filter(o => String(o.order_id).toLowerCase().includes(orderIdQuery));
+        }
+
+        if (fromDate) {
+            filtered = filtered.filter(o => parseDateOnly(o.order_date) >= fromDate);
+        }
+
+        if (toDate) {
+            filtered = filtered.filter(o => parseDateOnly(o.order_date) <= toDate);
+        }
+
+        updateStats(filtered);
+        renderOrdersTable(filtered);
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        updateStats(ordersData);
+        renderOrdersTable(ordersData);
+
+        document.getElementById("applyFilters").addEventListener("click", applyFilters);
+
+        document.getElementById("resetFilters").addEventListener("click", function() {
+            document.getElementById("statusFilter").value = "";
+            document.getElementById("fromDate").value = "";
+            document.getElementById("toDate").value = "";
+            document.getElementById("orderIdFilter").value = "";
+            updateStats(ordersData);
+            renderOrdersTable(ordersData);
+        });
+
+        document.getElementById("closeModal").addEventListener("click", function() {
+            document.getElementById("orderDetailsModal").style.display = "none";
+        });
+
+        document.getElementById("closeStatusModal").addEventListener("click", function() {
+            document.getElementById("updateStatusModal").style.display = "none";
+        });
+
+        document.getElementById("cancelStatusUpdate").addEventListener("click", function() {
+            document.getElementById("updateStatusModal").style.display = "none";
+        });
+
+        document.getElementById("printOrder").addEventListener("click", function() {
+            window.print();
+        });
+
+        document.getElementById("updateStatus").addEventListener("click", function() {
+            const orderId = Number(document.getElementById("modalOrderId").textContent);
+            openUpdateStatus(orderId);
+            document.getElementById("orderDetailsModal").style.display = "none";
+        });
+
+        document.getElementById("saveStatusUpdate").addEventListener("click", async function() {
+            const orderId = Number(this.dataset.orderId);
+            const newStatus = document.getElementById("newStatusSelect").value;
+            const notes = document.getElementById("statusNotes").value;
+
+            try {
+                await saveStatusToDB(orderId, newStatus, notes);
+
+             
+                const o = findOrder(orderId);
+                if (o) {
+                    o.status = newStatus;
+                    o.notes = notes;
+                }
+
+                document.getElementById("updateStatusModal").style.display = "none";
+                applyFilters();
+
+             
+                await refreshFromServer();
+
+            } catch (e) {
+                alert("Error: " + (e.message || e));
+            }
+        });
+
+        window.addEventListener("click", function(event) {
+            const orderModal = document.getElementById("orderDetailsModal");
+            const statusModal = document.getElementById("updateStatusModal");
+            if (event.target === orderModal) orderModal.style.display = "none";
+            if (event.target === statusModal) statusModal.style.display = "none";
+        });
+    });
+</script>
+</body>
+</html>

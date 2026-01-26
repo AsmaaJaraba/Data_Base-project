@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if product %}{{ product.name }} - مكتبة بيرزيت{% else %}منتج غير موجود - مكتبة بيرزيت{% endif %}
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .pd-wrap{
+    max-width: 1100px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+
+  .pd-card{
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 420px 1fr;
+  }
+
+  .pd-img{
+    background: #f5f5f5;
+    min-height: 360px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 1rem;
+  }
+
+  .pd-img img{
+    width: 100%;
+    height: 100%;
+    max-height: 420px;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+
+  .pd-body{
+    padding: 1.5rem 1.5rem 1.8rem;
+  }
+
+  .pd-title{
+    font-size: 1.8rem;
+    color: #003366;
+    margin-bottom: .4rem;
+    line-height: 1.3;
+  }
+
+  .pd-meta{
+    display:flex;
+    flex-wrap: wrap;
+    gap: .5rem .75rem;
+    margin: .6rem 0 1rem;
+    color: #555;
+    font-size: .95rem;
+  }
+
+  .pill{
+    background: #eef3ff;
+    color: #003366;
+    padding: .35rem .7rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: .85rem;
+    display:inline-flex;
+    align-items:center;
+    gap:.4rem;
+  }
+
+  .pill.orange{ background:#fff2ec; color:#ff6b35; }
+  .pill.green{ background:#eaf7ee; color:#28a745; }
+  .pill.gray{ background:#f1f1f1; color:#666; }
+
+  .pd-price{
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: #ff6b35;
+    margin: .2rem 0 1rem;
+  }
+
+  .pd-desc{
+    color: #333;
+    line-height: 1.8;
+    margin-bottom: 1.2rem;
+    white-space: pre-wrap;
+  }
+
+  .pd-actions{
+    display:flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    align-items: center;
+    margin-top: 1rem;
+  }
+
+  .qty{
+    display:flex;
+    align-items:center;
+    gap: .5rem;
+    background:#f7f7f7;
+    padding:.5rem .7rem;
+    border-radius: 10px;
+  }
+
+  .qty input{
+    width: 70px;
+    padding:.45rem .5rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+  }
+
+  .btn{
+    padding: .85rem 1.1rem;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+    display:inline-flex;
+    align-items:center;
+    gap:.5rem;
+    text-decoration:none;
+  }
+
+  .btn-primary{ background:#003366; color:#fff; }
+  .btn-primary:hover{ background:#00509E; }
+
+  .btn-secondary{ background:#28A745; color:#fff; }
+  .btn-secondary:hover{ background:#218838; }
+
+  .btn-light{ background:#f1f1f1; color:#333; }
+  .btn-light:hover{ background:#e7e7e7; }
+
+  .pd-back{
+    display:inline-flex;
+    align-items:center;
+    gap:.5rem;
+    color:#003366;
+    text-decoration:none;
+    font-weight:700;
+    margin-bottom: 1rem;
+  }
+
+  @media (max-width: 900px){
+    .pd-card{ grid-template-columns: 1fr; }
+    .pd-img{ min-height: 260px; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pd-wrap">
+
+  <a class="pd-back" href="{{ url_for('index') }}">
+    <i class="fas fa-arrow-right"></i>
+    العودة للرئيسية
+  </a>
+
+  {% if not product %}
+    <div class="pd-card" style="grid-template-columns:1fr;">
+      <div class="pd-body">
+        <h2 class="pd-title">المنتج غير موجود</h2>
+        <p class="pd-desc">الرابط غير صحيح أو المنتج محذوف.</p>
+        <a class="btn btn-primary" href="{{ url_for('index') }}">
+          <i class="fas fa-home"></i> الرئيسية
+        </a>
+      </div>
+    </div>
+  {% else %}
+
+    {% set img_path = None %}
+    {% if product.image_filename %}
+      {% set img_path = url_for('static', filename='uploads/' ~ product.image_filename) %}
+    {% endif %}
+
+    <div class="pd-card">
+      <div class="pd-img">
+        <img
+          src="{{ img_path if img_path else 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=1200&q=80' }}"
+          alt="{{ product.name }}"
+        >
+      </div>
+
+      <div class="pd-body">
+        <h1 class="pd-title">{{ product.name }}</h1>
+
+        <div class="pd-meta">
+          <span class="pill">
+            <i class="fas fa-tag"></i>
+            {{ product.product_type }}
+          </span>
+
+          {% if product.is_available == 'yes' %}
+            <span class="pill green">
+              <i class="fas fa-check-circle"></i>
+              متوفر
+            </span>
+          {% else %}
+            <span class="pill orange">
+              <i class="fas fa-times-circle"></i>
+              غير متوفر
+            </span>
+          {% endif %}
+
+          {% if product.category_name %}
+            <span class="pill gray">
+              <i class="fas fa-folder"></i>
+              {{ product.category_name }}
+            </span>
+          {% endif %}
+        </div>
+
+        <div class="pd-price">${{ "%.2f"|format(product.price) }}</div>
+
+        {% if product.description %}
+          <div class="pd-desc">{{ product.description }}</div>
+        {% else %}
+          <div class="pd-desc" style="opacity:.8;">لا يوجد وصف لهذا المنتج حالياً.</div>
+        {% endif %}
+
+        <div class="pd-actions">
+          <div class="qty">
+            <label for="qty">الكمية</label>
+            <input id="qty" type="number" min="1" value="1">
+          </div>
+
+          <!-- For now buttons are UI only (we’ll connect them to cart in Day2) -->
+          <button class="btn btn-primary" type="button" id="btnAdd">
+            <i class="fas fa-cart-plus"></i> أضف للسلة
+          </button>
+
+          <a class="btn btn-secondary" href="{{ url_for('cart') }}">
+            <i class="fas fa-bolt"></i> شراء الآن
+          </a>
+
+          <a class="btn btn-light" href="{{ url_for('books') }}">
+            <i class="fas fa-store"></i> متابعة التسوق
+          </a>
+        </div>
+      </div>
+    </div>
+
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('btnAdd');
+    if (!btn) return;
+
+    btn.addEventListener('click', () => {
+      const qty = document.getElementById('qty')?.value || 1;
+      alert(`تمت الإضافة للسلة (كمية: ${qty}) — ربط السلة الحقيقي سنعمله بالخطوة القادمة`);
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,217 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}مكتبة بيرزيت{% endblock %}</title>
+
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body dir="rtl">
+
+    <!-- Header -->
+    <header>
+        <div class="top-bar">
+            <div class="logo">
+                <i class="fas fa-book fa-2x"></i>
+                <h1>مكتبة بيرزيت</h1>
+            </div>
+
+            <div class="search-bar">
+                <form action="{{ url_for('search') }}" method="get" style="width: 100%;">
+                    <input type="text" name="q" placeholder="ابحث عن كتب، قرطاسية، خدمات...">
+                </form>
+            </div>
+
+            <div class="user-actions">
+                <a href="{{ url_for('cart') }}" style="position: relative;">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>سلة المشتريات</span>
+                    <span id="cart-count"
+                          style="display:inline-flex; align-items:center; justify-content:center; min-width:22px; height:22px; padding:0 6px; border-radius:999px; font-size:12px; background:#d4af37; color:#1a365d; margin-right:6px;">
+                        0
+                    </span>
+                </a>
+                <a href="{{ url_for('login') }}">
+                    <i class="fas fa-user"></i>
+                    <span>تسجيل الدخول</span>
+                </a>
+            </div>
+        </div>
+
+        <nav>
+            <a href="{{ url_for('index') }}">
+                <i class="fas fa-home"></i>
+                <span>الرئيسية</span>
+            </a>
+
+            <a href="{{ url_for('books') }}">
+                <i class="fas fa-book"></i>
+                <span>الكتب</span>
+            </a>
+
+            <a href="{{ url_for('stationery') }}">
+                <i class="fas fa-pencil-alt"></i>
+                <span>القرطاسية</span>
+            </a>
+
+            <a href="{{ url_for('ebooks') }}">
+                <i class="fas fa-tablet-alt"></i>
+                <span>الكتب الإلكترونية</span>
+            </a>
+
+            <a href="{{ url_for('services') }}">
+                <i class="fas fa-print"></i>
+                <span>الخدمات</span>
+            </a>
+
+             <a href="{{ url_for('student_dashboard') }}">
+        <i class="fas fa-user-graduate"></i>
+        <span>لوحة الطالب</span>
+    </a>
+    
+    <a href="{{ url_for('branches') }}">
+        <i class="fas fa-map-marker-alt"></i>
+        <span>الفروع</span>
+    </a>
+</nav>
+    </header>
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>مكتبة بيرزيت</h3>
+                <p>منصة متكاملة للكتب الجامعية، القرطاسية، الخدمات الطلابية والمكتبة الرقمية.</p>
+            </div>
+
+            <div class="footer-section">
+                <h3>اتصل بنا</h3>
+                <div class="contact-info">
+                    <i class="fas fa-phone"></i>
+                    <span>02-298-2000</span>
+                </div>
+                <div class="contact-info">
+                    <i class="fas fa-envelope"></i>
+                    <span>info@birzeit-library.ps</span>
+                </div>
+                <div class="contact-info">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>جامعة بيرزيت، رام الله</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="copyright">
+            <p>© 2024 مكتبة بيرزيت. جميع الحقوق محفوظة.</p>
+        </div>
+    </footer>
+
+  
+<script>
+  async function updateCartCount() {
+    const el = document.getElementById('cart-count');
+    if (!el) return;
+
+    try {
+      const res = await fetch('/api/cart', {
+        method: 'GET',
+        credentials: 'same-origin'  
+      });
+
+      if (res.status === 401) {
+        el.textContent = '0';
+        return;
+      }
+
+      const data = await res.json();
+      if (!data.ok) { el.textContent = '0'; return; }
+
+      const totalQty = (data.items || []).reduce((sum, it) =>
+        sum + (parseInt(it.quantity || 0, 10) || 0), 0
+      );
+
+      el.textContent = totalQty;
+    } catch (e) {
+      el.textContent = '0';
+    }
+  }
+
+
+  async function addToCart(productId, qty = 1) {
+    try {
+      const res = await fetch('/api/cart/add', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_id: productId, qty })
+      });
+
+      if (res.status === 401) {
+        window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname);
+        return;
+      }
+
+      const data = await res.json();
+      if (!data.ok) {
+        alert("في مشكلة: " + (data.error || "غير معروف"));
+        return;
+      }
+
+      await updateCartCount();
+      alert("تمت الإضافة للسلة ✅");
+    } catch (e) {
+      alert("Network error");
+    }
+  }
+
+
+  async function addToCartAndGo(productId, qty = 1) {
+    try {
+      const res = await fetch('/api/cart/add', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_id: productId, qty })
+      });
+
+      if (res.status === 401) {
+        window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname);
+        return;
+      }
+
+      const data = await res.json();
+      if (!data.ok) {
+        alert("في مشكلة: " + (data.error || "غير معروف"));
+        return;
+      }
+
+      await updateCartCount();
+      window.location.href = "{{ url_for('cart') }}";
+    } catch (e) {
+      alert("Network error");
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', updateCartCount);
+
+
+  window.addEventListener('pageshow', updateCartCount);
+</script>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

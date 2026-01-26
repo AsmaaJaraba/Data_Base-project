@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>لوحة الطالب - مكتبة بيرزيت</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+    
+    .wrap { 
+      max-width: 1200px; 
+      margin: 30px auto; 
+      padding: 0 20px;
+    }
+    
+    .header-card { 
+      background: linear-gradient(135deg, #1a365d 0%, #2d3748 100%);
+      color: white;
+      border-radius: 20px; 
+      padding: 30px; 
+      box-shadow: 0 10px 30px rgba(0,0,0,.15);
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    
+    .header-card h2 {
+      font-size: 2.2rem;
+      margin-bottom: 10px;
+      color: #ffd700;
+    }
+    
+    .header-card p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      margin-bottom: 20px;
+    }
+    
+    .user-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 8px 20px;
+      border-radius: 50px;
+      font-weight: bold;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    /* شبكة البطاقات */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+    }
+    
+    .card { 
+      background: white; 
+      border-radius: 15px; 
+      padding: 25px; 
+      box-shadow: 0 5px 20px rgba(0,0,0,.08);
+      transition: transform 0.3s, box-shadow 0.3s;
+      border-top: 5px solid #1a365d;
+    }
+    
+    .card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 30px rgba(0,0,0,.12);
+    }
+    
+    .card h3 {
+      color: #1a365d;
+      margin-bottom: 15px;
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .card h3 i {
+      color: #ffd700;
+    }
+    
+    .card p {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    
+    /* الأزرار */
+    .btn-row { 
+      display: flex; 
+      gap: 12px; 
+      flex-wrap: wrap; 
+      margin-top: 25px;
+      justify-content: center;
+    }
+    
+    a.btn { 
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px; 
+      border-radius: 12px; 
+      text-decoration: none; 
+      font-weight: 600;
+      transition: all 0.3s;
+      font-size: 1rem;
+    }
+    
+    a.btn.primary { 
+      background: #1a365d; 
+      color: white; 
+      border: 2px solid #1a365d;
+    }
+    
+    a.btn.primary:hover { 
+      background: #0f2545;
+      transform: translateY(-3px);
+    }
+    
+    a.btn.secondary { 
+      background: #28a745; 
+      color: white;
+      border: 2px solid #28a745;
+    }
+    
+    a.btn.secondary:hover { 
+      background: #218838;
+      transform: translateY(-3px);
+    }
+    
+    a.btn.light { 
+      background: #f8f9fa; 
+      color: #1a365d;
+      border: 2px solid #dee2e6;
+    }
+    
+    a.btn.light:hover { 
+      background: #e9ecef;
+      transform: translateY(-3px);
+    }
+    
+    a.btn.danger { 
+      background: #dc3545; 
+      color: white;
+      border: 2px solid #dc3545;
+    }
+    
+    a.btn.danger:hover { 
+      background: #c82333;
+      transform: translateY(-3px);
+    }
+    
+    /* إحصائيات */
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    
+    .stat-item {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 3px 10px rgba(0,0,0,.05);
+    }
+    
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #1a365d;
+      margin: 10px 0;
+    }
+    
+    .stat-label {
+      color: #666;
+      font-size: 0.9rem;
+    }
+    
+
+    .section-title {
+      font-size: 1.8rem;
+      color: #1a365d;
+      margin: 40px 0 20px 0;
+      padding-bottom: 10px;
+      border-bottom: 3px solid #ffd700;
+    }
+    
+  
+    @media (max-width: 768px) {
+      .wrap {
+        padding: 0 15px;
+        margin: 20px auto;
+      }
+      
+      .header-card {
+        padding: 20px;
+      }
+      
+      .header-card h2 {
+        font-size: 1.8rem;
+      }
+      
+      .cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      }
+      
+      .btn-row {
+        flex-direction: column;
+      }
+      
+      a.btn {
+        justify-content: center;
+      }
+    }
+  </style>
+  
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="wrap">
+   
+    <div class="header-card">
+      <h2><i class="fas fa-user-graduate"></i> مرحباً، {{ session.get("user_name", "طالب") }}</h2>
+      <p>لوحة تحكم طالب جامعة بيرزيت</p>
+      <div class="user-badge">
+        <i class="fas fa-user-tag"></i>
+        {{ session.get("role", "طالب") }}
+      </div>
+      
+     
+      <div class="btn-row">
+        <a class="btn primary" href="{{ url_for('index') }}">
+          <i class="fas fa-home"></i> الرئيسية
+        </a>
+        <a class="btn secondary" href="{{ url_for('my_orders') }}">
+          <i class="fas fa-clipboard-list"></i> طلباتي
+        </a>
+        <a class="btn primary" href="{{ url_for('cart') }}">
+          <i class="fas fa-shopping-cart"></i> سلة المشتريات
+        </a>
+        <a class="btn light" href="{{ url_for('books') }}">
+          <i class="fas fa-book"></i> الكتب
+        </a>
+        <a class="btn light" href="{{ url_for('stationery') }}">
+          <i class="fas fa-pencil-alt"></i> القرطاسية
+        </a>
+        <a class="btn danger" href="{{ url_for('logout') }}">
+          <i class="fas fa-sign-out-alt"></i> تسجيل خروج
+        </a>
+      </div>
+    </div>
+    
+ 
+    <h2 class="section-title"><i class="fas fa-chart-line"></i> إحصائيات سريعة</h2>
+    <div class="stats-container">
+      <div class="stat-item">
+        <i class="fas fa-shopping-cart fa-2x" style="color: #1a365d;"></i>
+        <div class="stat-number">{{  orders_count  }}</div>
+        <div class="stat-label">الطلبات النشطة</div>
+      </div>
+      
+      <div class="stat-item">
+        <i class="fas fa-book fa-2x" style="color: #28a745;"></i>
+        <div class="stat-number">{{ session.get("books_count", 0) }}</div>
+        <div class="stat-label">الكتب المستعارة</div>
+      </div>
+      
+      <div class="stat-item">
+        <i class="fas fa-star fa-2x" style="color: #ffc107;"></i>
+        <div class="stat-number" id="favoritesCount">{{ favorites_count }}</div>
+
+        <div class="stat-label">نقاط المكافآت</div>
+      </div>
+      
+      <div class="stat-item">
+        <i class="fas fa-heart fa-2x" style="color: #dc3545;"></i>
+        <div class="stat-number">{{ favorites_count }}</div>
+        <div class="stat-label">المفضلة</div>
+      </div>
+    </div>
+    
+ 
+    <h2 class="section-title"><i class="fas fa-bolt"></i> خدمات سريعة</h2>
+    <div class="cards-grid">
+      <div class="card">
+        <h3><i class="fas fa-search"></i> البحث عن كتب</h3>
+        <p>ابحث عن الكتب الجامعية والمراجع التي تحتاجها لمقرراتك الدراسية.</p>
+        <a class="btn primary" href="{{ url_for('books') }}">
+          <i class="fas fa-search"></i> ابدأ البحث
+        </a>
+      </div>
+      
+      <div class="card">
+        <h3><i class="fas fa-print"></i> خدمات الطباعة</h3>
+        <p>اطبع أبحاثك ومشاريعك بجودة عالية وأسعار مناسبة للطلاب.</p>
+        <a class="btn secondary" href="{{ url_for('services') }}">
+          <i class="fas fa-print"></i> اطلب طباعة
+        </a>
+      </div>
+      
+      <div class="card">
+        <h3><i class="fas fa-laptop"></i> المكتبة الرقمية</h3>
+        <p>تصفح الكتب الإلكترونية والموارد الرقمية المتاحة لك.</p>
+        <a class="btn primary" href="{{ url_for('ebooks') }}">
+          <i class="fas fa-laptop"></i> الدخول الآن
+        </a>
+      </div>
+      
+      <div class="card">
+        <h3><i class="fas fa-map-marker-alt"></i> فروع المكتبة</h3>
+        <p>اعرف مواقع وأوقات عمل فروع مكتبة بيرزيت القريبة منك.</p>
+        <a class="btn light" href="{{ url_for('branches') }}">
+          <i class="fas fa-map-marker-alt"></i> عرض الفروع
+        </a>
+      </div>
+    </div>
+    
+ 
+    <h2 class="section-title"><i class="fas fa-graduation-cap"></i> مقرراتي الدراسية</h2>
+    <div class="cards-grid">
+      <div class="card">
+        <h3><i class="fas fa-calculator"></i> حساب التفاضل</h3>
+        <p>رياضيات 101 - الدكتور أحمد محمد</p>
+        <div class="btn-row">
+          <a class="btn primary btn-sm" href="#">
+            <i class="fas fa-book"></i> كتب المقرر
+          </a>
+          <a class="btn light btn-sm" href="#">
+            <i class="fas fa-download"></i> مصادر
+          </a>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h3><i class="fas fa-code"></i> برمجة الحاسوب</h3>
+        <p>CS 101 - الدكتورة سارة خالد</p>
+        <div class="btn-row">
+          <a class="btn primary btn-sm" href="#">
+            <i class="fas fa-book"></i> كتب المقرر
+          </a>
+          <a class="btn light btn-sm" href="#">
+            <i class="fas fa-download"></i> مصادر
+          </a>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h3><i class="fas fa-language"></i> لغة إنجليزية</h3>
+        <p>ENG 101 - الدكتور جون سميث</p>
+        <div class="btn-row">
+          <a class="btn primary btn-sm" href="#">
+            <i class="fas fa-book"></i> كتب المقرر
+          </a>
+          <a class="btn light btn-sm" href="#">
+            <i class="fas fa-download"></i> مصادر
+          </a>
+        </div>
+      </div>
+    </div>
+   
+    <h2 class="section-title"><i class="fas fa-history"></i> آخر طلباتي</h2>
+    <div class="card">
+      <p><i class="fas fa-info-circle"></i> سيتم عرض آخر الطلبات هنا عندما تقوم بعمليات شراء.</p>
+      <a class="btn secondary" href="{{ url_for('my_orders') }}">
+        <i class="fas fa-eye"></i> عرض جميع الطلبات
+      </a>
+    </div>
+    
+ 
+    <h2 class="section-title"><i class="fas fa-bell"></i> التنبيهات</h2>
+    <div class="card">
+      <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+        <i class="fas fa-check-circle" style="color: #28a745; font-size: 1.5rem;"></i>
+        <div>
+          <strong>تم تفعيل حسابك بنجاح!</strong>
+          <p style="margin-top: 5px; color: #666;">يمكنك الآن الاستفادة من جميع خدمات المكتبة.</p>
+        </div>
+      </div>
+      
+      <div style="display: flex; align-items: center; gap: 15px;">
+        <i class="fas fa-gift" style="color: #ffc107; font-size: 1.5rem;"></i>
+        <div>
+          <strong>عروض خاصة للطلاب الجدد!</strong>
+          <p style="margin-top: 5px; color: #666;">احصل على خصم 15% على أول طلب لك.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  
+  <script>
+
+    function updateTime() {
+      const now = new Date();
+      const options = { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true 
+      };
+      const timeString = now.toLocaleDateString('ar-SA', options);
+      
+      const timeElement = document.getElementById('currentTime');
+      if (timeElement) {
+        timeElement.textContent = timeString;
+      }
+    }
+    
+    
+
+  
+    async function updateFavoritesCounter() {
+    try {
+      const res = await fetch('/api/favorites/count', { credentials: 'same-origin' });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.ok) {
+        const el = document.getElementById('favoritesCount');
+        if (el) el.textContent = data.count;
+      }
+    } catch (e) {}
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    updateFavoritesCounter();
+    setInterval(updateFavoritesCounter, 5000); 
+  });
+
+    document.querySelector('a[href*="logout"]')?.addEventListener('click', function(e) {
+      if (!confirm('هل أنت متأكد من تسجيل الخروج؟')) {
+        e.preventDefault();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الإعدادات - مكتبة بيرزيت</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* ===== VARIABLES ===== */
+        :root {
+            --primary: #1a365d;
+            --secondary: #2d50a3;
+            --success: #28A745;
+            --warning: #FF6B35;
+            --danger: #DC3545;
+            --info: #17A2B8;
+            --light: #F8F9FA;
+            --dark: #343A40;
+            --white: #FFFFFF;
+            --gray: #6C757D;
+            --border: #E0E0E0;
+            --shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+            --radius: 10px;
+            --transition: all 0.3s ease;
+        }
+
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Tahoma', Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        /* ===== LAYOUT ===== */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ===== SIDEBAR (Same as other pages) ===== */
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--white);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: var(--transition);
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-header span {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        .nav-menu {
+            padding: 1.5rem 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.9rem 1.5rem;
+            margin: 0.3rem 0;
+            color: rgba(255, 255, 255, 0.9);
+            border-right: 4px solid transparent;
+            transition: var(--transition);
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.1);
+            border-right-color: var(--warning);
+            color: var(--white);
+        }
+
+        .nav-icon {
+            width: 24px;
+            text-align: center;
+            margin-left: 10px;
+        }
+
+        .logout-item {
+            margin-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 1rem;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            flex: 1;
+            margin-right: 250px;
+            padding: 1.5rem;
+        }
+
+        /* ===== TOP BAR ===== */
+        .top-bar {
+            background: var(--white);
+            padding: 1.2rem 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+        }
+
+        .page-title h1 {
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .page-title p {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        /* ===== SETTINGS TABS ===== */
+        .settings-tabs {
+            display: flex;
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--gray);
+            transition: var(--transition);
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn:hover {
+            background: var(--light);
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: rgba(26, 54, 93, 0.05);
+        }
+
+        /* ===== SETTINGS CONTENT ===== */
+        .settings-content {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 2rem;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .settings-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .section-title {
+            color: var(--primary);
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 2px solid var(--light);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .section-title i {
+            color: var(--secondary);
+        }
+
+        /* ===== FORM STYLES ===== */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+
+        textarea.form-input {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-help {
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin-top: 0.5rem;
+        }
+
+        /* ===== SWITCH TOGGLE ===== */
+        .switch-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--light);
+            border-radius: var(--radius);
+            margin-bottom: 1rem;
+        }
+
+        .switch-label {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .switch-label strong {
+            font-weight: 500;
+        }
+
+        .switch-label span {
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: var(--transition);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            right: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: var(--transition);
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(-26px);
+        }
+
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary);
+        }
+
+        .btn-secondary {
+            background: var(--gray);
+            color: var(--white);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--light);
+        }
+
+        /* ===== COLOR PICKER ===== */
+        .color-options {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .color-option {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: var(--transition);
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-option.selected {
+            border-color: var(--dark);
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* ===== BACKUP SECTION ===== */
+        .backup-list {
+            background: var(--light);
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .backup-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--white);
+            border-radius: 8px;
+            margin-bottom: 0.8rem;
+        }
+
+        .backup-info h4 {
+            margin-bottom: 0.3rem;
+            color: var(--dark);
+        }
+
+        .backup-info p {
+            color: var(--gray);
+            font-size: 0.85rem;
+        }
+
+        /* ===== DANGER ZONE ===== */
+        .danger-zone {
+            background: #fff5f5;
+            border: 2px solid var(--danger);
+            border-radius: var(--radius);
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .danger-zone h3 {
+            color: var(--danger);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 70px;
+            }
+            
+            .main-content {
+                margin-right: 70px;
+            }
+            
+            .sidebar-header span,
+            .sidebar-header h1,
+            .nav-text {
+                display: none;
+            }
+            
+            .nav-item {
+                justify-content: center;
+                padding: 1rem 0;
+            }
+            
+            .nav-icon {
+                margin: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .settings-tabs {
+                flex-direction: column;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>مكتبة بيرزيت</h1>
+                <span>لوحة التحكم</span>
+            </div>
+            
+           <nav class="nav-menu">
+  <a href="{{ url_for('admin_dashboard') }}" class="nav-item {% if request.endpoint=='admin_dashboard' %}active{% endif %}">
+    <i class="fas fa-tachometer-alt nav-icon"></i>
+    <span class="nav-text">اللوحة الرئيسية</span>
+  </a>
+
+  <a href="{{ url_for('admin_products') }}" class="nav-item {% if request.endpoint=='admin_products' %}active{% endif %}">
+    <i class="fas fa-book nav-icon"></i>
+    <span class="nav-text">إدارة المنتجات</span>
+  </a>
+
+  <a href="{{ url_for('admin_orders') }}" class="nav-item {% if request.endpoint=='admin_orders' %}active{% endif %}">
+    <i class="fas fa-shopping-cart nav-icon"></i>
+    <span class="nav-text">إدارة الطلبات</span>
+  </a>
+
+  {# احذفيه إذا ما عندك راوت admin_users #}
+  {# <a href="{{ url_for('admin_users') }}" class="nav-item {% if request.endpoint=='admin_users' %}active{% endif %}">
+    <i class="fas fa-users nav-icon"></i>
+    <span class="nav-text">إدارة المستخدمين</span>
+  </a> #}
+
+  <a href="{{ url_for('admin_branches') }}" class="nav-item {% if request.endpoint=='admin_branches' %}active{% endif %}">
+    <i class="fas fa-map-marker-alt nav-icon"></i>
+    <span class="nav-text">إدارة الفروع</span>
+  </a>
+
+  <a href="{{ url_for('admin_reports') }}" class="nav-item {% if request.endpoint=='admin_reports' %}active{% endif %}">
+    <i class="fas fa-chart-bar nav-icon"></i>
+    <span class="nav-text">التقارير</span>
+  </a>
+
+  <a href="{{ url_for('admin_settings') }}" class="nav-item {% if request.endpoint=='admin_settings' %}active{% endif %}">
+    <i class="fas fa-cog nav-icon"></i>
+    <span class="nav-text">الإعدادات</span>
+  </a>
+
+  <a href="{{ url_for('index') }}" class="nav-item logout-item">
+    <i class="fas fa-sign-out-alt nav-icon"></i>
+    <span class="nav-text">العودة للموقع</span>
+  </a>
+
+  <a href="{{ url_for('logout') }}" class="nav-item">
+    <i class="fas fa-right-from-bracket nav-icon"></i>
+    <span class="nav-text">تسجيل الخروج</span>
+  </a>
+</nav>
+
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <!-- TOP BAR -->
+            <div class="top-bar">
+                <div class="page-title">
+                    <h1>الإعدادات</h1>
+                    <p>إدارة إعدادات النظام والتطبيق</p>
+                </div>
+            </div>
+            
+            <!-- TABS -->
+            <div class="settings-tabs">
+                <button class="tab-btn active" data-tab="general">
+                    <i class="fas fa-cog"></i>
+                    عام
+                </button>
+                <button class="tab-btn" data-tab="appearance">
+                    <i class="fas fa-palette"></i>
+                    المظهر
+                </button>
+                <button class="tab-btn" data-tab="notifications">
+                    <i class="fas fa-bell"></i>
+                    الإشعارات
+                </button>
+                <button class="tab-btn" data-tab="backup">
+                    <i class="fas fa-database"></i>
+                    النسخ الاحتياطي
+                </button>
+                <button class="tab-btn" data-tab="advanced">
+                    <i class="fas fa-sliders-h"></i>
+                    متقدم
+                </button>
+            </div>
+            
+            <!-- SETTINGS CONTENT -->
+            <div class="settings-content">
+                <!-- GENERAL TAB -->
+                <div class="tab-content active" id="general">
+                    <div class="settings-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-info-circle"></i>
+                            معلومات النظام
+                        </h3>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">اسم المكتبة</label>
+                                <input type="text" class="form-input" value="مكتبة جامعة بيرزيت">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">الشعار</label>
+                                <input type="file" class="form-input" accept="image/*">
+                                <div class="form-help">الحجم الموصى به: 200 × 60 بكسل</div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">البريد الإلكتروني للدعم</label>
+                                <input type="email" class="form-input" value="support@bzulib.ps">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">رقم هاتف الدعم</label>
+                                <input type="tel" class="form-input" value="022956789">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-clock"></i>
+                            إعدادات الوقت
+                        </h3>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">المنطقة الزمنية</label>
+                                <select class="form-input">
+                                    <option selected>Asia/Hebron (توقيت فلسطين)</option>
+                                    <option>Asia/Amman (توقيت الأردن)</option>
+                                    <option>Asia/Riyadh (توقيت السعودية)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">تنسيق التاريخ</label>
+                                <select class="form-input">
+                                    <option selected>يوم/شهر/سنة (DD/MM/YYYY)</option>
+                                    <option>سنة/شهر/يوم (YYYY/MM/DD)</option>
+                                    <option>شهر/يوم/سنة (MM/DD/YYYY)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-money-check-alt"></i>
+                            إعدادات الدفع
+                        </h3>
+                        
+                        <div class="switch-group">
+                            <div class="switch-label">
+                                <strong>الدفع عند الاستلام</strong>
+                                <span>السماح للعملاء بالدفع عند استلام الطلب</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="switch-group">
+                            <div class="switch-label">
+                                <strong>البطاقات الإلكترونية</strong>
+                                <span>تفعيل دفع البطاقات الإلكترونية (Visa/MasterCard)</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- APPEARANCE TAB -->
+                <div class="tab-content" id="appearance">
+                    <div class="settings-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-paint-brush"></i>
+                            الألوان
+                        </h3>
+                        
+                        <div class="form-group">
+                            <label class="form-label">اللون الأساسي</label>
+                            <div class="color-options">
+                                <div class="color-option selected" style="background: #1a365d;" data-color="#1a365d"></div>
+                                <div class="color-option" style="background: #2c3e50;" data-color="#2c3e50"></div>
+                                <div class="color-option" style="background: #27ae60;" data-color="#27ae60"></div>
+                                <div class="color-option" style="background: #8e44ad;" data-color="#8e44ad"></div>
+                                <div class="color-option" style="background: #e74c3c;" data-color="#e74c3c"></div>
+                                <div class="color-option" style="background: #f39c12;" data-color="#f39c12"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">نمط القائمة الجانبية</label>
+                            <select class="form-input">
+                                <option selected>مظلم</option>
+                                <option>فاتح</option>
+                                <option>ملون</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-font"></i>
+                            الخطوط
+                        </h3>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">خط العناوين</label>
+                                <select class="form-input">
+                                    <option selected>Cairo, sans-serif</option>
+                                    <option>Tajawal, sans-serif</option>
+                                    <option>Roboto, sans-serif</option>
+                                    <option>Arial, sans-serif</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">خط النصوص</label>
+                                <select class="form-input">
+                                    <option selected>'Segoe UI', Tahoma, Geneva, Verdana, sans-serif</option>
+                                    <option>Cairo, sans-serif</option>
+                                    <option>Tajawal, sans-serif</option>
+                                    <option>Arial, Helvetica, sans-serif</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- NOTIFICATIONS TAB -->
+                <div class="tab-content" id="notifications">
+                    <div class="settings-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-envelope"></i>
+                            الإشعارات عبر البريد
+                        </h3>
+                        
+                        <div class="switch-group">
+                            <div class="switch-label">
+                                <strong>إشعارات الطلبات الجديدة</strong>
+                                <span>إرسال إشعار عند استلام طلب جديد</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="switch-group">
+                            <div class="switch-label">
+                                <strong>إشعارات حالة الطلب</strong>
+                                <span>إرسال إشعارات تحديث حالة الطلب للعملاء</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="switch-group">
+                            <div class="switch-label">
+                                <strong>إشعارات المنتجات المنخفضة</strong>
+                                <span>إشعار عند انخفاض مخزون المنتج</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-bell"></i>
+                            الإشعارات داخل النظام
+                        </h3>
+                        
+                        <div class="form-group">
+                            <label class="form-label">تطبيق الويب</label>
+                            <div class="form-help">الإشعارات التي تظهر في لوحة التحكم</div>
+                            
+                            <div class="switch-group" style="margin-top: 1rem;">
+                                <div class="switch-label">
+                                    <strong>تمكين جميع الإشعارات</strong>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" checked>
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- BACKUP TAB -->
+                <div class="tab-content" id="backup">
+                    <div class="settings-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-save"></i>
+                            النسخ الاحتياطي
+                        </h3>
+                        
+                        <div class="form-group">
+                            <label class="form-label">تحديث النسخ الاحتياطي</label>
+                            <div style="display: flex; gap: 1rem; align-items: center;">
+                                <select class="form-input" style="flex: 1;">
+                                    <option selected>يومياً</option>
+                                    <option>أسبوعياً</option>
+                                    <option>شهرياً</option>
+                                </select>
+                                <button class="btn btn-primary">
+                                    <i class="fas fa-sync"></i>
+                                    نسخ احتياطي الآن
+                                </button>
+                            </div>
+                            <div class="form-help">سيتم إنشاء نسخة احتياطية كاملة لقاعدة البيانات</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">النسخ الاحتياطية السابقة</label>
+                            <div class="backup-list">
+                                <div class="backup-item">
+                                    <div class="backup-info">
+                                        <h4>نسخة كاملة - 2024-03-20</h4>
+                                        <p>حجم الملف: 45.2 ميجابايت</p>
+                                    </div>
+                                    <button class="btn btn-secondary">
+                                        <i class="fas fa-download"></i>
+                                        تحميل
+                                    </button>
+                                </div>
+                                
+                                <div class="backup-item">
+                                    <div class="backup-info">
+                                        <h4>نسخة جزئية - 2024-03-15</h4>
+                                        <p>حجم الملف: 12.7 ميجابايت</p>
+                                    </div>
+                                    <button class="btn btn-secondary">
+                                        <i class="fas fa-download"></i>
+                                        تحميل
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-redo"></i>
+                            الاستعادة
+                        </h3>
+                        
+                        <div class="form-group">
+                            <label class="form-label">رفع نسخة احتياطية</label>
+                            <input type="file" class="form-input" accept=".sql,.backup,.zip">
+                            <div class="form-help">يجب أن تكون الملفات بصيغة SQL أو ZIP</div>
+                        </div>
+                        
+                        <button class="btn btn-primary" style="background: var(--warning);">
+                            <i class="fas fa-undo"></i>
+                            استعادة من نسخة احتياطية
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- ADVANCED TAB -->
+                <div class="tab-content" id="advanced">
+                    <div class="settings-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-code"></i>
+                            API والإعدادات التقنية
+                        </h3>
+                        
+                        <div class="form-group">
+                            <label class="form-label">مفتاح API</label>
+                            <div style="display: flex; gap: 1rem;">
+                                <input type="text" class="form-input" value="sk_live_51HqQ..." readonly>
+                                <button class="btn btn-secondary">
+                                    <i class="fas fa-copy"></i>
+                                    نسخ
+                                </button>
+                                <button class="btn btn-primary">
+                                    <i class="fas fa-redo"></i>
+                                    تجديد
+                                </button>
+                            </div>
+                            <div class="form-help">استخدم هذا المفتاح للتكامل مع التطبيقات الخارجية</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">وضع الصيانة</label>
+                            <div class="switch-group">
+                                <div class="switch-label">
+                                    <strong>تفعيل وضع الصيانة</strong>
+                                    <span>إيقاف الموقع للزوار لإجراء تحديثات</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="danger-zone">
+                        <h3><i class="fas fa-exclamation-triangle"></i> منطقة الخطر</h3>
+                        
+                        <div class="form-group">
+                            <label class="form-label">إعادة تعيين النظام</label>
+                            <div class="form-help">سيؤدي هذا إلى حذف جميع البيانات وإعادة النظام إلى إعداداته الافتراضية</div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button class="btn" style="background: var(--danger); color: white;" onclick="resetSystem()">
+                                <i class="fas fa-trash"></i>
+                                إعادة تعيين النظام
+                            </button>
+                            <button class="btn" style="background: var(--dark); color: white;">
+                                <i class="fas fa-trash-alt"></i>
+                                حذف البيانات التجريبية
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SAVE BUTTONS -->
+                <div class="form-actions">
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-times"></i>
+                        إلغاء
+                    </button>
+                    <button class="btn btn-primary" onclick="saveSettings()">
+                        <i class="fas fa-save"></i>
+                        حفظ التغييرات
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+       
+        function switchTab(tabId) {
+          
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+   
+            document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function setupColorPicker() {
+            const colorOptions = document.querySelectorAll('.color-option');
+            colorOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                 
+                    colorOptions.forEach(opt => opt.classList.remove('selected'));
+                    
+              
+                    this.classList.add('selected');
+                    
+                  
+                    const selectedColor = this.dataset.color;
+                    document.documentElement.style.setProperty('--primary', selectedColor);
+                    
+                    console.log('تم تغيير اللون الأساسي إلى:', selectedColor);
+                });
+            });
+        }
+
+        // ===== SETTINGS FUNCTIONS =====
+        function saveSettings() {
+            
+            const settings = {
+                libraryName: document.querySelector('input[value="مكتبة جامعة بيرزيت"]').value,
+                supportEmail: document.querySelector('input[value="support@bzulib.ps"]').value,
+                timezone: document.querySelector('select').value,
+              
+            };
+            
+    
+            console.log('جارٍ حفظ الإعدادات:', settings);
+            
+        
+            alert('تم حفظ الإعدادات بنجاح');
+            
+        
+            setTimeout(() => {
+                console.log('تم حفظ الإعدادات');
+            }, 1000);
+        }
+
+        function resetSystem() {
+            if (confirm('⚠️ تحذير: هذا الإجراء غير قابل للتراجع!\n\nهل أنت متأكد من إعادة تعيين النظام؟\nسيتم حذف جميع البيانات.')) {
+                if (prompt('اكتب "نعم" للتأكيد:') === 'نعم') {
+                    alert('جارٍ إعادة تعيين النظام...');
+                    // In real app, this would send request to reset system
+                }
+            }
+        }
+
+     
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab switching
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tabId = this.dataset.tab;
+                    switchTab(tabId);
+                });
+            });
+            
+            // Color picker
+            setupColorPicker();
+            
+      
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                });
+            });
+            
+            // Save button
+            document.querySelector('.btn-primary[onclick="saveSettings()"]').addEventListener('click', saveSettings);
+        });
+    </script>
+</body>
+</html>

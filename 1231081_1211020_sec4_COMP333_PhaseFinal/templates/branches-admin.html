@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>إدارة الفروع - مكتبة بيرزيت</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #1a365d;
+      --secondary: #2d50a3;
+      --success: #28A745;
+      --warning: #FF6B35;
+      --danger: #DC3545;
+      --info: #17A2B8;
+      --light: #F8F9FA;
+      --dark: #343A40;
+      --white: #FFFFFF;
+      --gray: #6C757D;
+      --border: #E0E0E0;
+      --shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+      --radius: 10px;
+      --transition: all 0.3s ease;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', 'Tahoma', Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      color: var(--dark);
+      line-height: 1.6;
+    }
+
+    .app-container { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 250px;
+      background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%);
+      color: var(--white);
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+      transition: var(--transition);
+      z-index: 1000;
+    }
+
+    .sidebar-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      text-align: center;
+    }
+
+    .sidebar-header h1 { font-size: 1.4rem; margin-bottom: 0.5rem; }
+    .sidebar-header span { font-size: 0.85rem; opacity: 0.8; }
+
+    .nav-menu { padding: 1.5rem 0; }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 0.9rem 1.5rem;
+      margin: 0.3rem 0;
+      color: rgba(255, 255, 255, 0.9);
+      border-right: 4px solid transparent;
+      transition: var(--transition);
+      text-decoration: none;
+    }
+
+    .nav-item:hover, .nav-item.active {
+      background: rgba(255, 255, 255, 0.1);
+      border-right-color: var(--warning);
+      color: var(--white);
+    }
+
+    .nav-icon { width: 24px; text-align: center; margin-left: 10px; }
+
+    .logout-item {
+      margin-top: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 1rem;
+    }
+
+    .main-content {
+      flex: 1;
+      margin-right: 250px;
+      padding: 1.5rem;
+    }
+
+    .top-bar {
+      background: var(--white);
+      padding: 1.2rem 1.5rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .page-title h1 {
+      color: var(--primary);
+      font-size: 1.8rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .page-title p { color: var(--gray); font-size: 0.9rem; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--white);
+      padding: 1.5rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      text-align: center;
+      transition: var(--transition);
+    }
+
+    .stat-card:hover { transform: translateY(-5px); }
+
+    .stat-icon {
+      width: 50px; height: 50px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1rem;
+      font-size: 1.2rem;
+    }
+
+    .stat-card:nth-child(1) .stat-icon { background: #e3f2fd; color: #1976d2; }
+    .stat-card:nth-child(2) .stat-icon { background: #f3e5f5; color: #7b1fa2; }
+    .stat-card:nth-child(3) .stat-icon { background: #e8f5e8; color: #388e3c; }
+    .stat-card:nth-child(4) .stat-icon { background: #fff3e0; color: #f57c00; }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: var(--primary);
+      margin-bottom: 0.3rem;
+    }
+
+    .stat-label { color: var(--gray); font-size: 0.9rem; }
+
+    .branches-section {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 1.5rem;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.2rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--light);
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .section-header h2 {
+      color: var(--primary);
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-left: auto;
+    }
+
+    .header-controls {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 0.7rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn-primary { background: var(--primary); color: var(--white); }
+    .btn-primary:hover { background: var(--secondary); }
+
+    .form-input {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: var(--transition);
+      background: var(--white);
+    }
+
+    .form-input:focus { border-color: var(--primary); outline: none; }
+
+    .branches-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .branch-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+      transition: var(--transition);
+      border: 1px solid var(--border);
+    }
+
+    .branch-card:hover {
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+      transform: translateY(-3px);
+    }
+
+    .branch-header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .branch-name { font-size: 1.2rem; font-weight: 600; }
+
+    .branch-status {
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .status-active { background: rgba(255, 255, 255, 0.2); }
+    .status-inactive { background: rgba(255, 255, 255, 0.1); }
+
+    .branch-body { padding: 1.5rem; }
+
+    .branch-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .info-row { display: flex; align-items: center; gap: 0.8rem; }
+    .info-icon { color: var(--primary); width: 20px; }
+
+    .branch-footer {
+      padding: 1rem 1.5rem;
+      background: var(--light);
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid var(--border);
+    }
+
+    .btn-icon {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn-edit { background: var(--info); color: white; }
+    .btn-delete { background: var(--danger); color: white; }
+
+    .map-section {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      margin-top: 1.5rem;
+    }
+
+    .map-placeholder {
+      background: var(--light);
+      border-radius: var(--radius);
+      height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gray);
+      font-size: 1.1rem;
+      margin-top: 1rem;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; right: 0; bottom: 0; left: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .modal-content {
+      background: var(--white);
+      border-radius: 12px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 85vh;
+      overflow-y: auto;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .modal-title { color: var(--primary); font-size: 1.4rem; }
+
+    .btn-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--gray);
+      cursor: pointer;
+    }
+
+    .modal-body { padding: 1.5rem; }
+
+    .form-group { margin-bottom: 1.2rem; }
+
+    .form-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--dark);
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .hint {
+      font-size: 0.85rem;
+      color: var(--gray);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.3rem;
+    }
+
+    .tiny-note { color: var(--gray); font-size: 0.85rem; margin-top: 0.5rem; }
+
+    @media (max-width: 1200px) {
+      .sidebar { width: 70px; }
+      .main-content { margin-right: 70px; }
+      .sidebar-header span, .sidebar-header h1, .nav-text { display: none; }
+      .nav-item { justify-content: center; padding: 1rem 0; }
+      .nav-icon { margin: 0; }
+    }
+
+    @media (max-width: 768px) {
+      .main-content { padding: 1rem; }
+      .branches-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .header-controls { width: 100%; }
+      #branchSearch { width: 100% !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1>مكتبة بيرزيت</h1>
+        <span>لوحة التحكم</span>
+      </div>
+
+      <nav class="nav-menu">
+        <a href="admin-dashboard.html" class="nav-item">
+          <i class="fas fa-tachometer-alt nav-icon"></i>
+          <span class="nav-text">اللوحة الرئيسية</span>
+        </a>
+        <a href="products.html" class="nav-item">
+          <i class="fas fa-book nav-icon"></i>
+          <span class="nav-text">إدارة المنتجات</span>
+        </a>
+        <a href="orders.html" class="nav-item">
+          <i class="fas fa-shopping-cart nav-icon"></i>
+          <span class="nav-text">إدارة الطلبات</span>
+        </a>
+        <a href="users.html" class="nav-item">
+          <i class="fas fa-users nav-icon"></i>
+          <span class="nav-text">إدارة المستخدمين</span>
+        </a>
+        <a href="branches-admin.html" class="nav-item active">
+          <i class="fas fa-map-marker-alt nav-icon"></i>
+          <span class="nav-text">إدارة الفروع</span>
+        </a>
+        <a href="reports.html" class="nav-item">
+          <i class="fas fa-chart-bar nav-icon"></i>
+          <span class="nav-text">التقارير</span>
+        </a>
+        <a href="settings.html" class="nav-item">
+          <i class="fas fa-cog nav-icon"></i>
+          <span class="nav-text">الإعدادات</span>
+        </a>
+        <a href="index.html" class="nav-item logout-item">
+          <i class="fas fa-sign-out-alt nav-icon"></i>
+          <span class="nav-text">العودة للموقع</span>
+        </a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <div class="top-bar">
+        <div class="page-title">
+          <h1>إدارة الفروع</h1>
+          <p>إدارة وتتبع جميع فروع مكتبة بيرزيت</p>
+        </div>
+
+        <div style="display:flex; gap: .75rem; flex-wrap:wrap;">
+          <button class="btn" id="refreshBtn" style="background: var(--light); border: 1px solid var(--border);">
+            <i class="fas fa-rotate"></i>
+            تحديث من السيرفر
+          </button>
+
+          <button class="btn btn-primary" id="addBranchBtn">
+            <i class="fas fa-plus"></i>
+            إضافة فرع جديد
+          </button>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-store"></i></div>
+          <div class="stat-value" id="statTotal">{{ stats.total }}</div>
+          <div class="stat-label">إجمالي الفروع</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+          <div class="stat-value" id="statActive">{{ stats.active }}</div>
+          <div class="stat-label">فروع نشطة</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-users"></i></div>
+          <div class="stat-value" id="statStaff">{{ stats.staff_total }}</div>
+          <div class="stat-label">موظفين</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+          <div class="stat-value" id="statSales">${{ stats.sales_total }}</div>
+          <div class="stat-label">مبيعات الفروع</div>
+        </div>
+      </div>
+
+      <section class="branches-section">
+        <div class="section-header">
+          <h2><i class="fas fa-list"></i> قائمة الفروع</h2>
+
+          <div class="header-controls">
+            <select class="form-input" id="govFilter" style="width:auto; min-width: 220px;">
+              <option value="">كل المحافظات/المدن</option>
+            </select>
+
+            <input
+              type="text"
+              class="form-input"
+              id="branchSearch"
+              placeholder="بحث عن فرع (اسم / مدينة / عنوان / هاتف / مدير)..."
+              style="width: 320px;"
+            />
+
+            <button class="btn" id="clearFiltersBtn" style="background: var(--light); border: 1px solid var(--border);">
+              <i class="fas fa-eraser"></i>
+              مسح
+            </button>
+          </div>
+
+          <div class="hint" id="resultsHint" style="margin-right:auto;">
+            <i class="fas fa-filter"></i>
+            <span>عرض <b id="shownCount">0</b> من <b id="totalCount">0</b></span>
+          </div>
+        </div>
+
+        <div class="branches-grid" id="branchesList"></div>
+      </section>
+
+      <section class="map-section">
+        <h2><i class="fas fa-map"></i> خريطة الفروع</h2>
+        <div class="map-placeholder">
+          <div style="text-align: center;">
+            <i class="fas fa-map-marked-alt" style="font-size: 3rem; margin-bottom: 1rem; color: var(--primary);"></i>
+            <p>خريطة تفاعلية توضح مواقع جميع الفروع</p>
+            <small style="color: var(--gray);">(سيتم دمج خدمة خرائط Google هنا)</small>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal" id="branchModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">إضافة فرع جديد</h2>
+        <button class="btn-close" id="closeModal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <form id="branchForm">
+          <div class="form-group">
+            <label class="form-label">اسم الفرع</label>
+            <input type="text" class="form-input" id="branchName" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">المدينة / المحافظة</label>
+            <input type="text" class="form-input" id="branchCity" placeholder="مثال: رام الله والبيرة" />
+            <div class="tiny-note">سيتم استخدامها في الفلتر.</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">العنوان</label>
+            <input type="text" class="form-input" id="branchAddress" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">رقم الهاتف</label>
+            <input type="tel" class="form-input" id="branchPhone" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">مدير الفرع</label>
+            <input type="text" class="form-input" id="branchManager" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">ساعات العمل</label>
+            <input type="text" class="form-input" id="branchHours" placeholder="مثال: 08:00 - 20:00" />
+            <div class="tiny-note">اكتبيها بالشكل: <b>HH:MM - HH:MM</b></div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">حالة الفرع</label>
+            <select class="form-input" id="branchStatus" required>
+              <option value="active">نشط</option>
+              <option value="inactive">غير نشط</option>
+            </select>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn" id="cancelBtn" style="background: var(--gray); color: white;">إلغاء</button>
+            <button type="submit" class="btn btn-primary" id="saveBtn">حفظ</button>
+          </div>
+
+          <small style="display:block; margin-top:10px; color: var(--gray);">
+            ملاحظة: الآن الحفظ/التعديل/الحذف مرتبط بالـ DB عبر API ✅
+          </small>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Comes from Flask initial render (fallback)
+    const branchesData = {{ branches | tojson }};
+
+    // Local cache (will refresh from server on load)
+    let ALL_BRANCHES = Array.isArray(branchesData) ? branchesData.slice() : [];
+
+    const API_BASE = "/api/admin/branches";
+
+    // ---------- Helpers ----------
+    function safeStr(v) {
+      return (v === null || v === undefined) ? "" : String(v);
+    }
+
+    function normalize(str) {
+      return safeStr(str).toLowerCase().replace(/\s+/g, " ").trim();
+    }
+
+    function isBranchActive(branch) {
+      return (branch.is_active === 1 || branch.is_active === true);
+    }
+
+    function formatHours(branch) {
+      const ot = branch.open_time;
+      const ct = branch.close_time;
+      return (ot && ct) ? `${ot} - ${ct}` : "غير محدد";
+    }
+
+    function getBranchCity(branch) {
+      return safeStr(branch.city || "").trim();
+    }
+
+    function parseHoursRange(input) {
+      // expects "HH:MM - HH:MM"
+      const s = safeStr(input).trim();
+      if (!s) return { open_time: null, close_time: null };
+
+      const parts = s.split("-");
+      if (parts.length !== 2) return { open_time: null, close_time: null };
+
+      const a = parts[0].trim();
+      const b = parts[1].trim();
+
+      // keep HH:MM only (server will normalize)
+      const open_time = a ? a.slice(0,5) : null;
+      const close_time = b ? b.slice(0,5) : null;
+
+      return { open_time, close_time };
+    }
+
+    function setLoading(isLoading) {
+      const btn = document.getElementById("saveBtn");
+      btn.disabled = isLoading;
+      btn.textContent = isLoading ? "جارٍ الحفظ..." : "حفظ";
+    }
+
+    function computeAndRenderStatsFromLocal() {
+      const total = ALL_BRANCHES.length;
+      const active = ALL_BRANCHES.filter(b => isBranchActive(b)).length;
+      const staff = ALL_BRANCHES.reduce((acc, b) => acc + (Number(b.staff_count || 0)), 0);
+      const sales = ALL_BRANCHES.reduce((acc, b) => acc + (Number(b.monthly_sales || 0)), 0);
+
+      document.getElementById("statTotal").textContent = total;
+      document.getElementById("statActive").textContent = active;
+      document.getElementById("statStaff").textContent = staff;
+      document.getElementById("statSales").textContent = "$" + Math.round(sales * 100) / 100;
+    }
+
+    async function apiFetch(url, options = {}) {
+      const res = await fetch(url, {
+        credentials: "same-origin",
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          ...(options.headers || {})
+        }
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.ok === false) {
+        const msg = data.error || ("HTTP " + res.status);
+        throw new Error(msg);
+      }
+      return data;
+    }
+
+    async function refreshFromServer() {
+      const data = await apiFetch(API_BASE, { method: "GET" });
+      ALL_BRANCHES = Array.isArray(data.branches) ? data.branches : [];
+      buildGovOptions();
+      applyFilters();
+      computeAndRenderStatsFromLocal();
+    }
+
+    // ---------- Rendering ----------
+    function renderBranchesList(list) {
+      const branchesList = document.getElementById("branchesList");
+      branchesList.innerHTML = "";
+
+      document.getElementById("totalCount").textContent = ALL_BRANCHES.length;
+      document.getElementById("shownCount").textContent = list.length;
+
+      if (!list.length) {
+        branchesList.innerHTML = `
+          <div style="grid-column:1/-1; background: var(--light); border: 1px dashed var(--border); padding: 1rem; border-radius: 12px; text-align:center; color: var(--gray);">
+            لا يوجد فروع مطابقة للبحث/الفلتر.
+          </div>
+        `;
+        return;
+      }
+
+      list.forEach(branch => {
+        const card = document.createElement("div");
+        card.className = "branch-card";
+
+        const active = isBranchActive(branch);
+        const statusKey = active ? "active" : "inactive";
+        const statusLabel = active ? "نشط" : "غير نشط";
+        const hours = formatHours(branch);
+        const city = getBranchCity(branch);
+
+        card.innerHTML = `
+          <div class="branch-header">
+            <div class="branch-name">${safeStr(branch.name) || "—"}</div>
+            <div class="branch-status status-${statusKey}">${statusLabel}</div>
+          </div>
+
+          <div class="branch-body">
+            <div class="branch-info">
+              <div class="info-row">
+                <i class="fas fa-city info-icon"></i>
+                <span>${city || "—"}</span>
+              </div>
+
+              <div class="info-row">
+                <i class="fas fa-map-marker-alt info-icon"></i>
+                <span>${safeStr(branch.address) || "—"}</span>
+              </div>
+
+              <div class="info-row">
+                <i class="fas fa-phone info-icon"></i>
+                <span>${safeStr(branch.phone) || "—"}</span>
+              </div>
+
+              <div class="info-row">
+                <i class="fas fa-user-tie info-icon"></i>
+                <span>المدير: ${safeStr(branch.manager_name) || "—"}</span>
+              </div>
+
+              <div class="info-row">
+                <i class="fas fa-clock info-icon"></i>
+                <span>${hours}</span>
+              </div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; margin-top:1rem;">
+              <div style="text-align:center;">
+                <div style="font-size:1.2rem; font-weight:bold; color: var(--primary);">
+                  ${Number(branch.staff_count || 0)}
+                </div>
+                <div style="font-size:0.8rem; color: var(--gray);">موظفين</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:1.2rem; font-weight:bold; color: var(--success);">
+                  $${Number(branch.monthly_sales || 0)}
+                </div>
+                <div style="font-size:0.8rem; color: var(--gray);">مبيعات شهرية</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="branch-footer">
+            <button class="btn-icon btn-edit" onclick="editBranch(${Number(branch.id)})">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn-icon btn-delete" onclick="deleteBranch(${Number(branch.id)})">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        `;
+        branchesList.appendChild(card);
+      });
+    }
+
+    // ---------- Filtering / Search ----------
+    function buildGovOptions() {
+      const select = document.getElementById("govFilter");
+
+      const set = new Set();
+      for (const b of ALL_BRANCHES) {
+        const c = getBranchCity(b);
+        if (c) set.add(c);
+      }
+
+      const cities = Array.from(set).sort((a, b) => a.localeCompare(b, "ar"));
+
+      select.innerHTML = `<option value="">كل المحافظات/المدن</option>`;
+      cities.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        select.appendChild(opt);
+      });
+    }
+
+    function applyFilters() {
+      const selectedGov = document.getElementById("govFilter").value.trim();
+      const q = normalize(document.getElementById("branchSearch").value);
+
+      const filtered = ALL_BRANCHES.filter(b => {
+        if (selectedGov) {
+          const city = normalize(getBranchCity(b));
+          if (city !== normalize(selectedGov)) return false;
+        }
+
+        if (q) {
+          const hay = normalize([
+            b.name,
+            b.city,
+            b.address,
+            b.phone,
+            b.manager_name
+          ].join(" | "));
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+
+      renderBranchesList(filtered);
+    }
+
+    function clearFilters() {
+      document.getElementById("govFilter").value = "";
+      document.getElementById("branchSearch").value = "";
+      applyFilters();
+    }
+
+    // ---------- Modal ----------
+    function openAddBranchModal() {
+      document.getElementById("modalTitle").textContent = "إضافة فرع جديد";
+      document.getElementById("branchForm").reset();
+      delete document.getElementById("branchForm").dataset.editId;
+      document.getElementById("branchModal").style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById("branchModal").style.display = "none";
+    }
+
+    function editBranch(branchId) {
+      const branch = ALL_BRANCHES.find(b => Number(b.id) === Number(branchId));
+      if (!branch) return;
+
+      document.getElementById("modalTitle").textContent = "تعديل فرع";
+      document.getElementById("branchName").value = branch.name || "";
+      document.getElementById("branchCity").value = branch.city || "";
+      document.getElementById("branchAddress").value = branch.address || "";
+      document.getElementById("branchPhone").value = branch.phone || "";
+      document.getElementById("branchManager").value = branch.manager_name || "";
+
+      const hours = (branch.open_time && branch.close_time) ? `${branch.open_time} - ${branch.close_time}` : "";
+      document.getElementById("branchHours").value = hours;
+
+      document.getElementById("branchStatus").value = isBranchActive(branch) ? "active" : "inactive";
+      document.getElementById("branchForm").dataset.editId = Number(branchId);
+
+      document.getElementById("branchModal").style.display = "flex";
+    }
+
+    async function deleteBranch(branchId) {
+      if (!confirm("Are you sure you want to delete this branch?")) return;
+
+      try {
+        await apiFetch(`${API_BASE}/${Number(branchId)}`, { method: "DELETE" });
+
+        // remove locally
+        ALL_BRANCHES = ALL_BRANCHES.filter(b => Number(b.id) !== Number(branchId));
+        buildGovOptions();
+        applyFilters();
+        computeAndRenderStatsFromLocal();
+        alert("Deleted ✅");
+      } catch (e) {
+        alert("Delete failed: " + e.message);
+      }
+    }
+
+    // ---------- Init ----------
+    document.addEventListener("DOMContentLoaded", async function () {
+      // initial render from server (source of truth)
+      try {
+        await refreshFromServer();
+      } catch (e) {
+        // fallback to Jinja data if API fails
+        buildGovOptions();
+        renderBranchesList(ALL_BRANCHES);
+        computeAndRenderStatsFromLocal();
+        alert("Could not refresh from server. Showing cached data.\n" + e.message);
+      }
+
+      document.getElementById("refreshBtn").addEventListener("click", async () => {
+        try {
+          await refreshFromServer();
+        } catch (e) {
+          alert("Refresh failed: " + e.message);
+        }
+      });
+
+      document.getElementById("addBranchBtn").addEventListener("click", openAddBranchModal);
+
+      document.getElementById("govFilter").addEventListener("change", applyFilters);
+      document.getElementById("branchSearch").addEventListener("input", applyFilters);
+      document.getElementById("clearFiltersBtn").addEventListener("click", clearFilters);
+
+      document.getElementById("closeModal").addEventListener("click", closeModal);
+      document.getElementById("cancelBtn").addEventListener("click", closeModal);
+
+      document.getElementById("branchForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        setLoading(true);
+
+        const editId = this.dataset.editId;
+        const isActive = document.getElementById("branchStatus").value === "active";
+
+        const hoursRaw = document.getElementById("branchHours").value;
+        const { open_time, close_time } = parseHoursRange(hoursRaw);
+
+        const payload = {
+          name: document.getElementById("branchName").value.trim(),
+          city: document.getElementById("branchCity").value.trim(),
+          address: document.getElementById("branchAddress").value.trim(),
+          phone: document.getElementById("branchPhone").value.trim(),
+          manager_name: document.getElementById("branchManager").value.trim(),
+          open_time: open_time,
+          close_time: close_time,
+          is_active: isActive ? 1 : 0
+        };
+
+        try {
+          if (editId) {
+            const data = await apiFetch(`${API_BASE}/${Number(editId)}`, {
+              method: "PUT",
+              body: JSON.stringify(payload)
+            });
+
+            const updated = data.branch;
+            const idx = ALL_BRANCHES.findIndex(b => Number(b.id) === Number(editId));
+            if (idx !== -1) ALL_BRANCHES[idx] = updated;
+
+            alert("Updated ✅");
+          } else {
+            const data = await apiFetch(API_BASE, {
+              method: "POST",
+              body: JSON.stringify(payload)
+            });
+
+            const created = data.branch;
+            ALL_BRANCHES.unshift(created);
+
+            alert("Created ✅");
+          }
+
+          buildGovOptions();
+          applyFilters();
+          computeAndRenderStatsFromLocal();
+          closeModal();
+          this.reset();
+          delete this.dataset.editId;
+        } catch (err) {
+          alert("Save failed: " + err.message);
+        } finally {
+          setLoading(false);
+        }
+      });
+
+      window.addEventListener("click", function (event) {
+        if (event.target === document.getElementById("branchModal")) {
+          closeModal();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

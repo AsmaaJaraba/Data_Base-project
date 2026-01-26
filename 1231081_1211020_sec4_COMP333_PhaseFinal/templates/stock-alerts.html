@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الموردين - مكتبة بيرزيت</title>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        .suppliers-container {
+            padding: 20px;
+        }
+        
+        .suppliers-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .add-supplier-btn {
+            background: #003366;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .add-supplier-btn:hover {
+            background: #00509E;
+        }
+        
+        .suppliers-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .supplier-stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-top: 4px solid #003366;
+        }
+        
+        .stat-icon {
+            font-size: 2rem;
+            color: #003366;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .suppliers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .suppliers-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .supplier-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 1px solid #eee;
+            transition: all 0.3s;
+        }
+        
+        .supplier-card:hover {
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            transform: translateY(-5px);
+        }
+        
+        .supplier-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        
+        .supplier-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #003366;
+            margin-bottom: 0.5rem;
+        }
+        
+        .supplier-rating {
+            color: #ffc107;
+            font-size: 0.9rem;
+        }
+        
+        .supplier-info {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .supplier-products {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+        
+        .products-label {
+            font-size: 0.8rem;
+            color: #999;
+            margin-bottom: 0.5rem;
+        }
+        
+        .products-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+        }
+        
+        .product-tag {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.7rem;
+            color: #495057;
+        }
+        
+        .supplier-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+        
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .action-btn.edit {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .action-btn.view {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .action-btn.delete {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .empty-suppliers {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+            grid-column: 1 / -1;
+        }
+        
+        .empty-suppliers i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #ddd;
+        }
+        
+        .search-section {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .search-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .search-input-group {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .search-btn {
+            background: #003366;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- الشريط الجانبي -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar">
+                <div class="sidebar-sticky pt-3">
+                    <h6 class="sidebar-heading px-3 mt-4 mb-1 text-muted">
+                        <span>إدارة المخزون</span>
+                    </h6>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('inventory_management') }}">
+                                <i class="fas fa-warehouse"></i>
+                                لوحة المخزون
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('stock_orders') }}">
+                                <i class="fas fa-shopping-cart"></i>
+                                طلبات التوريد
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('stock_alerts') }}">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                التنبيهات
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{{ url_for('suppliers') }}">
+                                <i class="fas fa-truck"></i>
+                                الموردين
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('inventory_reports') }}">
+                                <i class="fas fa-chart-bar"></i>
+                                التقارير
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- المحتوى الرئيسي -->
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
+                <div class="suppliers-container">
+                    <!-- العنوان والزر -->
+                    <div class="suppliers-header pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">
+                            <i class="fas fa-truck"></i>
+                            إدارة الموردين
+                        </h1>
+                        <button class="add-supplier-btn" onclick="showAddSupplierModal()">
+                            <i class="fas fa-plus"></i>
+                            إضافة مورد جديد
+                        </button>
+                    </div>
+
+                    <!-- إحصائيات سريعة -->
+                    <div class="suppliers-stats">
+                        <div class="supplier-stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-value" id="totalSuppliers">8</div>
+                            <div class="stat-label">إجمالي الموردين</div>
+                        </div>
+                        
+                        <div class="supplier-stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="stat-value" id="activeSuppliers">6</div>
+                            <div class="stat-label">موردين نشطين</div>
+                        </div>
+                        
+                        <div class="supplier-stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <div class="stat-value" id="totalProducts">42</div>
+                            <div class="stat-label">منتج من الموردين</div>
+                        </div>
+                        
+                        <div class="supplier-stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="stat-value" id="totalOrders">24</div>
+                            <div class="stat-label">طلب هذا الشهر</div>
+                        </div>
+                    </div>
+
+            
+                    <div class="search-section">
+                        <div class="search-header">
+                            <h5>البحث عن موردين</h5>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-primary" onclick="exportSuppliers()">
+                                    <i class="fas fa-download"></i> تصدير
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary ml-2" onclick="printSuppliers()">
+                                    <i class="fas fa-print"></i> طباعة
+                                </button>
+                            </div>
+                        </div>
+                        <div class="search-input-group">
+                            <input type="text" class="search-input" placeholder="ابحث عن مورد بالاسم، المنتج، أو الاتصال..." 
+                                   id="supplierSearch" oninput="searchSuppliers()">
+                            <button class="search-btn" onclick="searchSuppliers()">
+                                <i class="fas fa-search"></i> بحث
+                            </button>
+                        </div>
+                    </div>
+
+              
+                    <div class="suppliers-grid" id="suppliersGrid">
+                       
+                    </div>
+
+               
+                    <div id="emptySuppliers" class="empty-suppliers" style="display: none;">
+                        <i class="fas fa-truck"></i>
+                        <h4>لا توجد موردين</h4>
+                        <p>ابدأ بإضافة مورد جديد</p>
+                        <button class="btn btn-primary" onclick="showAddSupplierModal()">
+                            <i class="fas fa-plus"></i> إضافة مورد جديد
+                        </button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal إضافة مورد -->
+    <div class="modal fade" id="addSupplierModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">إضافة مورد جديد</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="supplierForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>اسم المورد *</label>
+                                    <input type="text" class="form-control" id="supplierName" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>التصنيف</label>
+                                    <select class="form-control" id="supplierCategory">
+                                        <option value="books">كتب ومراجع</option>
+                                        <option value="stationery">قرطاسية</option>
+                                        <option value="equipment">معدات</option>
+                                        <option value="printing">طباعة</option>
+                                        <option value="other">أخرى</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>اسم المسؤول</label>
+                                    <input type="text" class="form-control" id="contactPerson">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>البريد الإلكتروني</label>
+                                    <input type="email" class="form-control" id="contactEmail">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>رقم الهاتف</label>
+                                    <input type="tel" class="form-control" id="contactPhone">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>التقييم</label>
+                                    <select class="form-control" id="supplierRating">
+                                        <option value="5">ممتاز (5 نجوم)</option>
+                                        <option value="4">جيد جداً (4 نجوم)</option>
+                                        <option value="3" selected>جيد (3 نجوم)</option>
+                                        <option value="2">مقبول (2 نجوم)</option>
+                                        <option value="1">ضعيف (1 نجمة)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>العنوان</label>
+                            <textarea class="form-control" id="supplierAddress" rows="2"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>المنتجات الموردة</label>
+                            <textarea class="form-control" id="productsSupplied" rows="3" 
+                                      placeholder="أدخل أنواع المنتجات التي يوفرها هذا المورد، مفصولة بفواصل"></textarea>
+                            <small class="form-text text-muted">مثال: كتب أكاديمية, قرطاسية, أوراق طباعة</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>ملاحظات إضافية</label>
+                            <textarea class="form-control" id="supplierNotes" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="form-group form-check">
+                            <input type="checkbox" class="form-check-input" id="isActive" checked>
+                            <label class="form-check-label" for="isActive">مورد نشط</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">إلغاء</button>
+                    <button type="button" class="btn btn-primary" onclick="saveSupplier()">حفظ المورد</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal تفاصيل المورد -->
+    <div class="modal fade" id="supplierDetailsModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">تفاصيل المورد</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="supplierDetailsContent">
+                 
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">إغلاق</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+      
+        const suppliersData = [
+            {
+                id: 1,
+                name: "مخزن بيرزيت الرئيسي",
+                category: "books",
+                contactPerson: "أحمد السعيد",
+                email: "ahmed@bzu.ps",
+                phone: "0599-123456",
+                address: "مبنى المكتبة الرئيسي، جامعة بيرزيت",
+                productsSupplied: ["كتب أكاديمية", "مراجع بحثية", "رسائل جامعية"],
+                rating: 5,
+                notes: "المورد الرئيسي للكتب الأكاديمية",
+                isActive: true,
+                totalOrders: 45,
+                totalProducts: 15,
+                joinedDate: "2023-01-15"
+            },
+            {
+                id: 2,
+                name: "مورد الكتب الوطنية",
+                category: "books",
+                contactPerson: "محمد الخطيب",
+                email: "info@nationalbooks.ps",
+                phone: "02-2987654",
+                address: "رام الله، شارع القدس",
+                productsSupplied: ["كتب أكاديمية", "كتب ثقافية", "مجلات"],
+                rating: 4,
+                notes: "يوفر كتب باللغتين العربية والإنجليزية",
+                isActive: true,
+                totalOrders: 32,
+                totalProducts: 12,
+                joinedDate: "2023-03-10"
+            },
+            {
+                id: 3,
+                name: "شركة القرطاسية المتحدة",
+                category: "stationery",
+                contactPerson: "سامي النجار",
+                email: "sales@unitedstationery.ps",
+                phone: "0598-987654",
+                address: "البيرة، منطقة الصناعية",
+                productsSupplied: ["قرطاسية", "أوراق طباعة", "مستلزمات مكتبية"],
+                rating: 4,
+                notes: "أكبر مورد للقرطاسية في المنطقة",
+                isActive: true,
+                totalOrders: 28,
+                totalProducts: 8,
+                joinedDate: "2023-02-20"
+            },
+            {
+                id: 4,
+                name: "مطبعة الجامعة",
+                category: "printing",
+                contactPerson: "خالد أبو زهرة",
+                email: "print@bzu.ps",
+                phone: "0599-456789",
+                address: "مبنى المطبعة، جامعة بيرزيت",
+                productsSupplied: ["طباعة كتب", "نسخ مستندات", "تغليف"],
+                rating: 3,
+                notes: "خدمات الطباعة الداخلية",
+                isActive: true,
+                totalOrders: 15,
+                totalProducts: 5,
+                joinedDate: "2023-04-05"
+            },
+            {
+                id: 5,
+                name: "مكتبة القدس للقرطاسية",
+                category: "stationery",
+                contactPerson: "ليلى أحمد",
+                email: "alquds.stationery@gmail.com",
+                phone: "02-2233445",
+                address: "القدس، باب الخليل",
+                productsSupplied: ["قرطاسية فاخرة", "هدايا مكتبية", "مستلزمات فنية"],
+                rating: 5,
+                notes: "متخصصة في القرطاسية الفاخرة والهدايا",
+                isActive: true,
+                totalOrders: 12,
+                totalProducts: 6,
+                joinedDate: "2023-05-12"
+            },
+            {
+                id: 6,
+                name: "شركة التقنية للمعدات",
+                category: "equipment",
+                contactPerson: "عمر التميمي",
+                email: "tech@equipment.ps",
+                phone: "0597-112233",
+                address: "رام الله، المنطقة التكنولوجية",
+                productsSupplied: ["أجهزة كمبيوتر", "طابعات", "معدات عرض"],
+                rating: 4,
+                notes: "مورد معدات التكنولوجيا",
+                isActive: true,
+                totalOrders: 8,
+                totalProducts: 4,
+                joinedDate: "2023-06-18"
+            },
+            {
+                id: 7,
+                name: "مكتبة الإسراء",
+                category: "books",
+                contactPerson: "فاطمة أبو علي",
+                email: "al-israa.library@yahoo.com",
+                phone: "02-3344556",
+                address: "بيت لحم، شارع المهد",
+                productsSupplied: ["كتب دينية", "مراجع تاريخية", "كتب أطفال"],
+                rating: 3,
+                notes: "متخصصة في الكتب الدينية والتاريخية",
+                isActive: false,
+                totalOrders: 5,
+                totalProducts: 3,
+                joinedDate: "2023-07-22"
+            }
+        ];
+
+      
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStats();
+            renderSuppliersGrid();
+            
+          
+            document.getElementById('supplierSearch').addEventListener('input', function(e) {
+                searchSuppliers(e.target.value);
+            });
+        });
+
+     
+        function updateStats() {
+            document.getElementById('totalSuppliers').textContent = suppliersData.length;
+            document.getElementById('activeSuppliers').textContent = suppliersData.filter(s => s.isActive).length;
+            
+            const totalProducts = suppliersData.reduce((sum, s) => sum + s.totalProducts, 0);
+            document.getElementById('totalProducts').textContent = totalProducts;
+            
+            const totalOrders = suppliersData.reduce((sum, s) => sum + s.totalOrders, 0);
+            document.getElementById('totalOrders').textContent = totalOrders;
+        }
+
+ 
+        function renderSuppliersGrid(filteredSuppliers = suppliersData) {
+            const grid = document.getElementById('suppliersGrid');
+            const emptyState = document.getElementById('emptySuppliers');
+            
+            if (filteredSuppliers.length === 0) {
+                grid.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            
+            let html = '';
+            filteredSuppliers.forEach(supplier => {
+                const categoryNames = {
+                    'books': 'كتب ومراجع',
+                    'stationery': 'قرطاسية',
+                    'equipment': 'معدات',
+                    'printing': 'طباعة',
+                    'other': 'أخرى'
+                };
+                
+                const products = supplier.productsSupplied.slice(0, 3);
+                
+                html += `
+                    <div class="supplier-card">
+                        <div class="supplier-header">
+                            <div>
+                                <div class="supplier-name">${supplier.name}</div>
+                                <div class="supplier-info">
+                                    <span class="badge ${supplier.isActive ? 'badge-success' : 'badge-secondary'}">
+                                        ${supplier.isActive ? 'نشط' : 'غير نشط'}
+                                    </span>
+                                    <span>${categoryNames[supplier.category]}</span>
+                                </div>
+                            </div>
+                            <div class="supplier-rating">
+                                ${generateStars(supplier.rating)}
+                            </div>
+                        </div>
+                        
+                        <div class="supplier-info">
+                            <i class="fas fa-user"></i> ${supplier.contactPerson || '--'}
+                        </div>
+                        <div class="supplier-info">
+                            <i class="fas fa-phone"></i> ${supplier.phone}
+                        </div>
+                        <div class="supplier-info">
+                            <i class="fas fa-envelope"></i> ${supplier.email}
+                        </div>
+                        
+                        <div class="supplier-products">
+                            <div class="products-label">المنتجات الموردة:</div>
+                            <div class="products-list">
+                                ${products.map(product => 
+                                    `<span class="product-tag">${product}</span>`
+                                ).join('')}
+                                ${supplier.productsSupplied.length > 3 ? 
+                                    `<span class="product-tag">+${supplier.productsSupplied.length - 3}</span>` : ''}
+                            </div>
+                        </div>
+                        
+                        <div class="supplier-actions">
+                            <div>
+                                <span class="text-muted" style="font-size: 0.8rem;">
+                                    <i class="fas fa-shopping-cart"></i> ${supplier.totalOrders} طلب
+                                </span>
+                                <span class="text-muted ml-2" style="font-size: 0.8rem;">
+                                    <i class="fas fa-box"></i> ${supplier.totalProducts} منتج
+                                </span>
+                            </div>
+                            <div>
+                                <button class="action-btn edit" onclick="editSupplier(${supplier.id})">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn view ml-1" onclick="viewSupplierDetails(${supplier.id})">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="action-btn delete ml-1" onclick="deleteSupplier(${supplier.id})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            grid.innerHTML = html;
+        }
+
+    
+        function searchSuppliers(query = '') {
+            const searchInput = document.getElementById('supplierSearch');
+            const searchTerm = query || searchInput.value.toLowerCase();
+            
+            if (!searchTerm.trim()) {
+                renderSuppliersGrid();
+                return;
+            }
+            
+            const filtered = suppliersData.filter(supplier => 
+                supplier.name.toLowerCase().includes(searchTerm) ||
+                supplier.contactPerson?.toLowerCase().includes(searchTerm) ||
+                supplier.email?.toLowerCase().includes(searchTerm) ||
+                supplier.phone?.includes(searchTerm) ||
+                supplier.productsSupplied.some(product => 
+                    product.toLowerCase().includes(searchTerm)
+                )
+            );
+            
+            renderSuppliersGrid(filtered);
+        }
+
+       
+        function showAddSupplierModal() {
+            $('#addSupplierModal').modal('show');
+        }
+
+       
+        function saveSupplier() {
+            const name = document.getElementById('supplierName').value;
+            if (!name) {
+                alert('الرجاء إدخال اسم المورد');
+                return;
+            }
+            
+         
+            const newSupplier = {
+                id: Math.max(...suppliersData.map(s => s.id)) + 1,
+                name: name,
+                category: document.getElementById('supplierCategory').value,
+                contactPerson: document.getElementById('contactPerson').value,
+                email: document.getElementById('contactEmail').value,
+                phone: document.getElementById('contactPhone').value,
+                address: document.getElementById('supplierAddress').value,
+                productsSupplied: document.getElementById('productsSupplied').value
+                    .split(',')
+                    .map(item => item.trim())
+                    .filter(item => item),
+                rating: parseInt(document.getElementById('supplierRating').value),
+                notes: document.getElementById('supplierNotes').value,
+                isActive: document.getElementById('isActive').checked,
+                totalOrders: 0,
+                totalProducts: 0,
+                joinedDate: new Date().toISOString().split('T')[0]
+            };
+            
+            suppliersData.unshift(newSupplier);
+            
+          
+            updateStats();
+            renderSuppliersGrid();
+            
+        
+            $('#addSupplierModal').modal('hide');
+            document.getElementById('supplierForm').reset();
+            
+            alert(`تم إضافة المورد "${name}" بنجاح`);
+        }
+
+        function viewSupplierDetails(supplierId) {
+            const supplier = suppliersData.find(s => s.id === supplierId);
+            if (!supplier) return;
+            
+            const categoryNames = {
+                'books': 'كتب ومراجع',
+                'stationery': 'قرطاسية',
+                'equipment': 'معدات',
+                'printing': 'طباعة',
+                'other': 'أخرى'
+            };
+            
+            const content = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>${supplier.name}</h5>
+                        <p><strong>التصنيف:</strong> ${categoryNames[supplier.category]}</p>
+                        <p><strong>التقييم:</strong> ${generateStars(supplier.rating)}</p>
+                        <p><strong>الحالة:</strong> 
+                            <span class="badge ${supplier.isActive ? 'badge-success' : 'badge-secondary'}">
+                                ${supplier.isActive ? 'نشط' : 'غير نشط'}
+                            </span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>معلومات الاتصال</h5>
+                        <p><strong>اسم المسؤول:</strong> ${supplier.contactPerson || '--'}</p>
+                        <p><strong>البريد الإلكتروني:</strong> ${supplier.email || '--'}</p>
+                        <p><strong>الهاتف:</strong> ${supplier.phone || '--'}</p>
+                        <p><strong>العنوان:</strong> ${supplier.address || '--'}</p>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h5>المنتجات الموردة</h5>
+                        <div class="d-flex flex-wrap gap-2">
+                            ${supplier.productsSupplied.map(product => 
+                                `<span class="badge badge-primary">${product}</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <h5>الإحصائيات</h5>
+                        <p><strong>إجمالي الطلبات:</strong> ${supplier.totalOrders}</p>
+                        <p><strong>إجمالي المنتجات:</strong> ${supplier.totalProducts}</p>
+                        <p><strong>تاريخ الانضمام:</strong> ${formatDate(supplier.joinedDate)}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>ملاحظات</h5>
+                        <p>${supplier.notes || 'لا توجد ملاحظات'}</p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('supplierDetailsContent').innerHTML = content;
+            $('#supplierDetailsModal').modal('show');
+        }
+
+      
+        function editSupplier(supplierId) {
+            alert(`تعديل المورد #${supplierId}`);
+            // window.location.href = `/admin/suppliers/edit/${supplierId}`;
+        }
+
+     
+        function deleteSupplier(supplierId) {
+            if (confirm('هل أنت متأكد من حذف هذا المورد؟')) {
+                const index = suppliersData.findIndex(s => s.id === supplierId);
+                if (index !== -1) {
+                    const supplierName = suppliersData[index].name;
+                    suppliersData.splice(index, 1);
+                    
+                    updateStats();
+                    renderSuppliersGrid();
+                    
+                    alert(`تم حذف المورد "${supplierName}" بنجاح`);
+                }
+            }
+        }
+
+    
+        function exportSuppliers() {
+            alert('جاري تصدير بيانات الموردين...');
+           
+        }
+
+      
+        function printSuppliers() {
+            window.print();
+        }
+
+     
+        function generateStars(rating) {
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                if (i <= rating) {
+                    stars += '<i class="fas fa-star text-warning"></i>';
+                } else if (i - 0.5 <= rating) {
+                    stars += '<i class="fas fa-star-half-alt text-warning"></i>';
+                } else {
+                    stars += '<i class="far fa-star text-warning"></i>';
+                }
+            }
+            return stars;
+        }
+
+    
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ar-SA');
+        }
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+</body>
+</html>

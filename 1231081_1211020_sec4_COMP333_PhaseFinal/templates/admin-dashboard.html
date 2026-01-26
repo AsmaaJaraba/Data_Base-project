@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-ar="لوحة تحكم الإدمن - مكتبة بيرزيت"
+          data-en="Admin Dashboard - Birzeit Library">لوحة تحكم الإدمن - مكتبة بيرزيت</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* نفس الـ CSS السابق... */
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+    :root {
+      --primary-blue: #003366;
+      --secondary-blue: #00509E;
+      --accent-green: #28A745;
+      --accent-orange: #FF6B35;
+      --light-gray: #F5F5F5;
+      --dark-gray: #333333;
+      --white: #FFFFFF;
+      --sidebar-width: 250px;
+    }
+
+    body { display: flex; background-color: #f0f2f5; min-height: 100vh; }
+    body[dir="ltr"] { font-family: 'Segoe UI', Arial, sans-serif; }
+
+    .language-switcher {
+      position: fixed; top: 20px; left: 20px; z-index: 1000;
+      background-color: var(--white); border-radius: 25px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      overflow: hidden; display: flex;
+    }
+
+    .lang-btn {
+      padding: 10px 20px; background: none; border: none; cursor: pointer;
+      font-weight: 600; font-size: 0.9rem;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .lang-btn.active { background-color: var(--primary-blue); color: var(--white); }
+
+    .sidebar {
+      width: var(--sidebar-width);
+      background-color: var(--primary-blue);
+      color: var(--white);
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+      transition: all 0.3s;
+      z-index: 100;
+    }
+
+    body[dir="ltr"] .sidebar { left: 0; right: auto; }
+
+    .sidebar-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    .sidebar-header h2 { font-size: 1.5rem; }
+
+    .sidebar-menu { padding: 1rem 0; }
+
+    .menu-item {
+      display: flex; align-items: center;
+      padding: 0.8rem 1.5rem;
+      color: #ddd; text-decoration: none;
+      transition: all 0.3s;
+      gap: 10px;
+    }
+
+    .menu-item:hover, .menu-item.active {
+      background-color: rgba(255,255,255,0.1);
+      color: var(--white);
+    }
+
+    .menu-item i { width: 20px; text-align: center; }
+
+    .main-content { flex: 1; margin-right: var(--sidebar-width); transition: all 0.3s; }
+    body[dir="ltr"] .main-content { margin-right: 0; margin-left: var(--sidebar-width); }
+
+    .top-navbar {
+      background-color: var(--white);
+      padding: 1rem 2rem;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .navbar-left { display: flex; align-items: center; gap: 15px; }
+
+    .toggle-sidebar {
+      background: none; border: none; font-size: 1.5rem;
+      color: var(--primary-blue); cursor: pointer; display: none;
+    }
+
+    .page-title { font-size: 1.5rem; color: var(--primary-blue); }
+
+    .navbar-right { display: flex; align-items: center; gap: 20px; }
+
+    .admin-profile { display: flex; align-items: center; gap: 10px; }
+
+    .admin-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background-color: var(--primary-blue);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--white); font-weight: bold;
+    }
+
+    .dashboard-content { padding: 2rem; }
+
+    .stats-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background-color: var(--white);
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      display: flex; align-items: center; gap: 1rem;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+
+    .stat-icon {
+      width: 60px; height: 60px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; color: var(--white);
+    }
+
+    .stat-info h3 { font-size: 1.8rem; margin-bottom: 0.2rem; }
+    .stat-info p { color: #666; font-size: 0.9rem; }
+
+    .revenue { background-color: #28A745; }
+    .orders  { background-color: #FFC107; }
+    .users   { background-color: #17A2B8; }
+    .pending { background-color: #DC3545; }
+
+    .dashboard-grid { 
+      display: grid; 
+      grid-template-columns: 2fr 1fr; 
+      gap: 1.5rem; 
+      margin-bottom: 2rem; 
+    }
+    
+    @media (max-width: 1200px) { 
+      .dashboard-grid { grid-template-columns: 1fr; } 
+    }
+
+    .chart-card, .inventory-card, .orders-card, .restock-history-card {
+      background-color: var(--white);
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .card-title { font-size: 1.2rem; font-weight: 600; color: var(--primary-blue); }
+
+    .chart-container {
+      height: 250px;
+      position: relative;
+    }
+
+    .orders-table { width: 100%; border-collapse: collapse; }
+    .orders-table th, .orders-table td { padding: 0.8rem; text-align: right; border-bottom: 1px solid #eee; }
+    body[dir="ltr"] .orders-table th, body[dir="ltr"] .orders-table td { text-align: left; }
+    .orders-table th { color: #666; font-weight: 500; }
+
+    .status { padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 500; display: inline-block; }
+    .status.preparing { background-color: #fff3cd; color: #856404; }
+    .status.shipped   { background-color: #d1ecf1; color: #0c5460; }
+    .status.delivered { background-color: #d4edda; color: #155724; }
+    .status.pending   { background-color: #f8d7da; color: #721c24; }
+    .status.processing{ background-color: #e2e3e5; color: #383d41; }
+    .status.completed { background-color: #d4edda; color: #155724; }
+    .status.available { background-color: #d1ecf1; color: #0c5460; }
+
+    .inventory-list { list-style: none; }
+    .inventory-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1rem 0; border-bottom: 1px solid #eee;
+    }
+    .inventory-item:last-child { border-bottom: none; }
+    .product-name { font-weight: 500; flex: 2; }
+    .product-stock { color: #666; flex: 1; text-align: center; }
+    .stock-count { font-weight: 600; }
+    .stock-count.low { color: #dc3545; }
+    .stock-count.medium { color: #ffc107; }
+    .stock-count.high { color: #28a745; }
+    .product-actions { flex: 1; text-align: left; }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 5px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background-color: var(--primary-blue);
+      color: var(--white);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--secondary-blue);
+    }
+
+    .btn-success {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background-color: #218838;
+    }
+
+    .btn-warning {
+      background-color: #ffc107;
+      color: #212529;
+    }
+
+    .btn-warning:hover {
+      background-color: #e0a800;
+    }
+
+    .restock-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background-color: white;
+      border-radius: 10px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-title {
+      font-size: 1.3rem;
+      color: var(--primary-blue);
+      font-weight: 600;
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #666;
+    }
+
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.8rem;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 0 2px rgba(0,51,102,0.2);
+    }
+
+    .quantity-input {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .quantity-btn {
+      width: 35px;
+      height: 35px;
+      border: 1px solid #ddd;
+      background: #f8f9fa;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
+
+    .quantity-value {
+      width: 70px;
+      text-align: center;
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .restock-history {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      padding: 0.8rem 0;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .history-item:last-child {
+      border-bottom: none;
+    }
+
+    .history-product {
+      font-weight: 500;
+    }
+
+    .history-details {
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background-color: #dc3545;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: bold;
+    }
+
+    .notifications {
+      position: relative;
+      cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar { margin-right: -250px; }
+      body[dir="ltr"] .sidebar { margin-left: -250px; }
+      .sidebar.active { margin-right: 0; }
+      body[dir="ltr"] .sidebar.active { margin-left: 0; }
+      .main-content { margin-right: 0; }
+      body[dir="ltr"] .main-content { margin-left: 0; }
+      .toggle-sidebar { display: block; }
+      .language-switcher { top: 10px; left: 10px; }
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body dir="rtl">
+
+  <div class="restock-modal" id="restockModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle" data-ar="طلب منتج جديد" data-en="Order New Product">طلب منتج جديد</h3>
+        <button class="close-modal" id="closeModal">&times;</button>
+      </div>
+      <form id="restockForm">
+        <div class="form-group">
+          <label class="form-label" for="productName" data-ar="اسم المنتج" data-en="Product Name">اسم المنتج</label>
+          <input type="text" class="form-control" id="productName" readonly>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="currentStock" data-ar="المخزون الحالي" data-en="Current Stock">المخزون الحالي</label>
+          <input type="text" class="form-control" id="currentStock" readonly>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" data-ar="الكمية المطلوبة" data-en="Required Quantity">الكمية المطلوبة</label>
+          <div class="quantity-input">
+            <button type="button" class="quantity-btn" id="decreaseQty">-</button>
+            <input type="number" class="quantity-value" id="quantity" value="10" min="1" max="1000">
+            <button type="button" class="quantity-btn" id="increaseQty">+</button>
+            <span style="margin-right: 10px;" id="unitText" data-ar="وحدة" data-en="unit">وحدة</span>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="supplier" data-ar="المورد" data-en="Supplier">المورد</label>
+          <select class="form-control" id="supplier">
+            <option value="مخزن بيرزيت الرئيسي">مخزن بيرزيت الرئيسي</option>
+            <option value="مورد الكتب الوطنية">مورد الكتب الوطنية</option>
+            <option value="شركة القرطاسية المتحدة">شركة القرطاسية المتحدة</option>
+            <option value="مطبعة الجامعة">مطبعة الجامعة</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="priority" data-ar="أولوية الطلب" data-en="Order Priority">أولوية الطلب</label>
+          <select class="form-control" id="priority">
+            <option value="normal" data-ar="عادية" data-en="Normal">عادية</option>
+            <option value="urgent" data-ar="عاجلة" data-en="Urgent">عاجلة</option>
+            <option value="critical" data-ar="حرجة" data-en="Critical">حرجة</option>
+          </select>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-warning" id="cancelRestock" data-ar="إلغاء" data-en="Cancel">إلغاء</button>
+          <button type="submit" class="btn btn-primary" data-ar="تأكيد الطلب" data-en="Confirm Order">تأكيد الطلب</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="language-switcher">
+    <button class="lang-btn active" id="lang-ar" data-lang="ar">
+      <i class="fas fa-language"></i><span>العربية</span>
+    </button>
+    <button class="lang-btn" id="lang-en" data-lang="en">
+      <i class="fas fa-language"></i><span>English</span>
+    </button>
+  </div>
+
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <i class="fas fa-cogs fa-2x"></i>
+      <h2 data-ar="لوحة التحكم" data-en="Dashboard">لوحة التحكم</h2>
+    </div>
+
+    <div class="sidebar-menu">
+      <a href="/admin/dashboard" class="menu-item active">
+        <i class="fas fa-tachometer-alt"></i>
+        <span data-ar="اللوحة الرئيسية" data-en="Dashboard">اللوحة الرئيسية</span>
+      </a>
+
+      <a href="/admin/products" class="menu-item">
+        <i class="fas fa-box"></i>
+        <span data-ar="إدارة المنتجات" data-en="Products Management">إدارة المنتجات</span>
+      </a>
+
+      <a href="/admin/orders" class="menu-item">
+        <i class="fas fa-shopping-cart"></i>
+        <span data-ar="إدارة الطلبات" data-en="Orders Management">إدارة الطلبات</span>
+      </a>
+
+      <a href="/admin/inventory" class="menu-item">
+        <i class="fas fa-warehouse"></i>
+        <span data-ar="إدارة المخزون" data-en="Inventory Management">إدارة المخزون</span>
+      </a>
+
+      <a href="/admin/ebooks" class="menu-item">
+        <i class="fas fa-tablet-alt"></i>
+        <span data-ar="الكتب الإلكترونية" data-en="E-Books">الكتب الإلكترونية</span>
+      </a>
+
+      <a href="/admin/branches" class="menu-item">
+        <i class="fas fa-map-marker-alt"></i>
+        <span data-ar="إدارة الفروع" data-en="Branches Management">إدارة الفروع</span>
+      </a>
+
+      <a href="/admin/reports" class="menu-item">
+        <i class="fas fa-chart-bar"></i>
+        <span data-ar="التقارير" data-en="Reports">التقارير</span>
+      </a>
+
+      <a href="/admin/settings" class="menu-item">
+        <i class="fas fa-cog"></i>
+        <span data-ar="الإعدادات" data-en="Settings">الإعدادات</span>
+      </a>
+
+      <a href="/" class="menu-item" style="margin-top: 2rem; color: #ff6b6b;">
+        <i class="fas fa-sign-out-alt"></i>
+        <span data-ar="العودة للموقع" data-en="Back to Site">العودة للموقع</span>
+      </a>
+
+      <a href="/logout" class="menu-item" style="color:#ff6b6b;">
+        <i class="fas fa-right-from-bracket"></i>
+        <span data-ar="تسجيل الخروج" data-en="Logout">تسجيل الخروج</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="top-navbar">
+      <div class="navbar-left">
+        <button class="toggle-sidebar" id="toggleSidebar"><i class="fas fa-bars"></i></button>
+        <h1 class="page-title" data-ar="لوحة التحكم الرئيسية" data-en="Main Dashboard">لوحة التحكم الرئيسية</h1>
+      </div>
+
+      <div class="navbar-right">
+        <div class="admin-profile">
+          <div class="admin-avatar" id="adminAvatar">
+ 
+          </div>
+          <div>
+            <div style="font-weight: 500;" id="adminName">
+    
+            </div>
+            <div style="font-size: 0.8rem; color: #666;" id="adminRole" data-ar="مدير النظام" data-en="System Admin">
+           
+            </div>
+          </div>
+        </div>
+        <div class="notifications" id="notificationsBtn">
+          <i class="fas fa-bell"></i>
+          <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-content">
+      <!-- قسم معلومات المستخدم -->
+      <div style="background-color: var(--white); border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+        <h3 style="color: var(--primary-blue); margin-bottom: 0.5rem;" data-ar="معلومات المستخدم" data-en="User Information">معلومات المستخدم</h3>
+        <div style="display: flex; align-items: center; gap: 15px;">
+          <div style="font-weight: 500;" id="welcomeMessage" data-ar="مرحباً بك،" data-en="Welcome,">مرحباً بك،</div>
+          <div style="color: var(--secondary-blue); font-weight: 600;" id="loggedInUser">
+            <!-- سيتم تعبئته بالجافاسكريبت -->
+          </div>
+          <div style="margin-left: auto; font-size: 0.9rem; color: #666;">
+            <i class="fas fa-clock"></i> <span id="currentTime"></span>
+            <span style="margin: 0 10px;">|</span>
+            <i class="fas fa-envelope"></i> <span id="userEmail">admin@bzu.ps</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- بطاقات الإحصائيات -->
+      <div class="stats-cards">
+        <div class="stat-card" id="revenueCard">
+          <div class="stat-icon revenue"><i class="fas fa-dollar-sign"></i></div>
+          <div class="stat-info"><h3 id="revenueValue">$1,250</h3><p data-ar="إيرادات اليوم" data-en="Today's Revenue">إيرادات اليوم</p></div>
+        </div>
+
+        <div class="stat-card" id="ordersCard">
+          <div class="stat-icon orders"><i class="fas fa-shopping-cart"></i></div>
+          <div class="stat-info"><h3 id="ordersValue">42</h3><p data-ar="الطلبات الجديدة" data-en="New Orders">الطلبات الجديدة</p></div>
+        </div>
+
+        <div class="stat-card" id="usersCard">
+          <div class="stat-icon users"><i class="fas fa-users"></i></div>
+          <div class="stat-info"><h3 id="usersValue">1,248</h3><p data-ar="المستخدمين المسجلين" data-en="Registered Users">المستخدمين المسجلين</p></div>
+        </div>
+
+        <div class="stat-card" id="pendingCard">
+          <div class="stat-icon pending"><i class="fas fa-clock"></i></div>
+          <div class="stat-info"><h3 id="pendingValue">18</h3><p data-ar="طلبات قيد التنفيذ" data-en="Pending Orders">طلبات قيد التنفيذ</p></div>
+        </div>
+      </div>
+
+      <!-- الشبكة الرئيسية -->
+      <div class="dashboard-grid">
+        <!-- الرسم البياني والمخزون -->
+        <div>
+          <div class="chart-card" style="margin-bottom: 1.5rem;">
+            <div class="card-header">
+              <h3 class="card-title" data-ar="مبيعات آخر 7 أيام" data-en="Sales Last 7 Days">مبيعات آخر 7 أيام</h3>
+              <select id="chartPeriod" style="width:auto; padding:5px 10px;">
+                <option value="week" data-ar="أسبوع" data-en="Week">أسبوع</option>
+                <option value="month" data-ar="شهر" data-en="Month">شهر</option>
+                <option value="year" data-ar="سنة" data-en="Year">سنة</option>
+              </select>
+            </div>
+            <div class="chart-container">
+              <canvas id="salesChart"></canvas>
+            </div>
+          </div>
+
+          <div class="inventory-card">
+            <div class="card-header">
+              <h3 class="card-title" data-ar="أحدث الطلبات" data-en="Recent Orders">أحدث الطلبات</h3>
+              <a href="/admin/orders" style="color: var(--primary-blue); text-decoration: none; font-size: 0.9rem;">
+                <span data-ar="عرض الكل" data-en="View All">عرض الكل</span>
+              </a>
+            </div>
+            <table class="orders-table" id="recentOrdersTable">
+              <thead>
+                <tr>
+                  <th data-ar="رقم الطلب" data-en="Order ID">رقم الطلب</th>
+                  <th data-ar="العميل" data-en="Customer">العميل</th>
+                  <th data-ar="المبلغ" data-en="Amount">المبلغ</th>
+                  <th data-ar="الحالة" data-en="Status">الحالة</th>
+                </tr>
+              </thead>
+              <tbody>
+       
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- المخزون المنخفض -->
+        <div>
+          <div class="inventory-card" style="margin-bottom: 1.5rem;">
+            <div class="card-header">
+              <h3 class="card-title" data-ar="تنبيهات المخزون المنخفض" data-en="Low Stock Alerts">تنبيهات المخزون المنخفض</h3>
+            </div>
+            <ul class="inventory-list" id="lowStockList">
+  
+            </ul>
+          </div>
+
+          <div class="restock-history-card">
+            <div class="card-header">
+              <h3 class="card-title" data-ar="النشاط الأخير" data-en="Recent Activity">النشاط الأخير</h3>
+            </div>
+            <div class="restock-history" id="recentActivity">
+       
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+  
+      const userData = getUserDataFromSession();
+      
+ 
+      const systemData = {
+        stats: {
+          revenue: 1250,
+          orders: 42,
+          users: 1248,
+          pending: 18
+        },
+        
+        recentOrders: [
+          { id: 1001, customer: "أحمد محمد", amount: "$45.00", status: "preparing" },
+          { id: 1002, customer: "سارة أحمد", amount: "$89.50", status: "shipped" },
+          { id: 1003, customer: "عمر خالد", amount: "$23.00", status: "delivered" },
+          { id: 1004, customer: "لينا مصطفى", amount: "$67.80", status: "preparing" },
+          { id: 1005, customer: "خالد زهران", amount: "$120.50", status: "shipped" }
+        ],
+        
+        lowStockItems: [
+          { name: "كتاب التفاضل والتكامل", stock: 3, threshold: 10, unit: "نسخة" },
+          { name: "أقلام زرقاء", stock: 12, threshold: 20, unit: "علبة" },
+          { name: "ورق A4", stock: 2, threshold: 15, unit: "علبة" },
+          { name: "أقلام حبر", stock: 8, threshold: 15, unit: "علبة" },
+          { name: "برايات", stock: 5, threshold: 10, unit: "علبة" }
+        ],
+        
+        recentActivity: [
+          { type: "login", user: "مدير النظام", time: "10:30 ص", description: "تسجيل دخول جديد" },
+          { type: "order", user: "سارة أحمد", time: "09:45 ص", description: "طلب جديد #1002" },
+          { type: "restock", user: "مخزن بيرزيت", time: "أمس", description: "وصلت شحنة كتب رياضيات" },
+          { type: "update", user: "نظام", time: "أمس", description: "تحديث المخزون تلقائياً" },
+          { type: "alert", user: "نظام", time: "2 يوم", description: "تنبيه مخزون منخفض" }
+        ]
+      };
+
+
+      function getUserDataFromSession() {
+       
+        const savedUser = localStorage.getItem('birzeit_user');
+        if (savedUser) {
+          return JSON.parse(savedUser);
+        }
+        
+       
+        return {
+          name: "Admin User", 
+          email: "admin@bzu.ps",
+          role: "مدير النظام",
+          avatarInitials: "AU"
+        };
+      }
+
+      
+      function saveUserDataToSession(userData) {
+        localStorage.setItem('birzeit_user', JSON.stringify(userData));
+      }
+
+   
+      function handleLogin(email, password) {
+       
+        const validCredentials = [
+          { email: "admin@bzu.ps", password: "admin123", name: "أحمد محمد", role: "مدير النظام" },
+          { email: "manager@bzu.ps", password: "manager123", name: "سارة أحمد", role: "مدير المخزون" },
+          { email: "staff@bzu.ps", password: "staff123", name: "عمر خالد", role: "موظف" }
+        ];
+        
+        const user = validCredentials.find(u => u.email === email && u.password === password);
+        
+        if (user) {
+          const userData = {
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            avatarInitials: user.name.split(' ').map(n => n[0]).join('').toUpperCase()
+          };
+          
+          saveUserDataToSession(userData);
+          return { success: true, user: userData };
+        }
+        
+        return { success: false, message: "البريد الإلكتروني أو كلمة المرور غير صحيحة" };
+      }
+
+     
+      function checkLogin() {
+        const userData = getUserDataFromSession();
+       
+        if (!userData || !userData.email) {
+       
+      
+          console.log("لم يتم تسجيل الدخول، يجب التوجيه لصفحة تسجيل الدخول");
+          return false;
+        }
+        
+        return true;
+      }
+
+      function initDashboard() {
+      
+        if (!checkLogin()) {
+         
+         
+          return;
+        }
+        
+        const userData = getUserDataFromSession();
+      
+        document.getElementById('loggedInUser').textContent = userData.name;
+        document.getElementById('adminName').textContent = userData.name;
+        document.getElementById('adminRole').textContent = userData.role;
+        document.getElementById('userEmail').textContent = userData.email;
+        document.getElementById('adminAvatar').textContent = userData.avatarInitials || 
+          userData.name.split(' ').map(n => n[0]).join('').toUpperCase();
+        
+  
+        updateTime();
+        setInterval(updateTime, 1000);
+        
+
+        document.getElementById('revenueValue').textContent = `$${systemData.stats.revenue.toLocaleString()}`;
+        document.getElementById('ordersValue').textContent = systemData.stats.orders;
+        document.getElementById('usersValue').textContent = systemData.stats.users.toLocaleString();
+        document.getElementById('pendingValue').textContent = systemData.stats.pending;
+        
+     
+        renderRecentOrders();
+        
+       
+        renderLowStockItems();
+        
+      
+        renderRecentActivity();
+        
+       
+        initSalesChart();
+      }
+
+
+      function updateTime() {
+        const now = new Date();
+        const options = { 
+          hour: '2-digit', 
+          minute: '2-digit', 
+          second: '2-digit',
+          hour12: true 
+        };
+        document.getElementById('currentTime').textContent = now.toLocaleTimeString('ar-SA', options);
+      }
+
+    
+      function renderRecentOrders() {
+        const tableBody = document.querySelector('#recentOrdersTable tbody');
+        tableBody.innerHTML = '';
+        
+        systemData.recentOrders.forEach(order => {
+          const statusText = {
+            'preparing': 'قيد التحضير',
+            'shipped': 'تم الشحن',
+            'delivered': 'تم التسليم'
+          };
+          
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>#${order.id}</td>
+            <td>${order.customer}</td>
+            <td>${order.amount}</td>
+            <td><span class="status ${order.status}">${statusText[order.status]}</span></td>
+          `;
+          
+          tableBody.appendChild(row);
+        });
+      }
+
+
+      function renderLowStockItems() {
+        const lowStockList = document.getElementById('lowStockList');
+        lowStockList.innerHTML = '';
+        
+        systemData.lowStockItems.forEach(item => {
+          const stockClass = item.stock < 5 ? 'low' : item.stock < 10 ? 'medium' : 'high';
+          
+          const li = document.createElement('li');
+          li.className = 'inventory-item';
+          li.innerHTML = `
+            <div class="product-name">${item.name}</div>
+            <div class="product-stock">
+              <span class="stock-count ${stockClass}">${item.stock} ${item.unit}</span>
+              <div style="font-size: 0.8rem; color: #999;">الحد الأدنى: ${item.threshold}</div>
+            </div>
+            <div class="product-actions">
+              <button class="btn btn-primary restock-btn" data-product="${item.name}">
+                <span data-ar="إعادة طلب" data-en="Restock">إعادة طلب</span>
+              </button>
+            </div>
+          `;
+          
+          lowStockList.appendChild(li);
+        });
+        
+
+        document.querySelectorAll('.restock-btn').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const productName = this.getAttribute('data-product');
+            const lang = localStorage.getItem('birzeit-lang') || 'ar';
+            alert(lang === 'ar' ? 
+              `تم طلب إعادة توريد ${productName}` : 
+              `Restock ordered for ${productName}`);
+          });
+        });
+      }
+
+
+      function renderRecentActivity() {
+        const activityContainer = document.getElementById('recentActivity');
+        activityContainer.innerHTML = '';
+        
+        systemData.recentActivity.forEach(activity => {
+          const icon = {
+            'login': 'fas fa-sign-in-alt',
+            'order': 'fas fa-shopping-cart',
+            'restock': 'fas fa-truck',
+            'update': 'fas fa-sync',
+            'alert': 'fas fa-exclamation-triangle'
+          }[activity.type] || 'fas fa-info-circle';
+          
+          const color = {
+            'login': '#28a745',
+            'order': '#007bff',
+            'restock': '#6f42c1',
+            'update': '#17a2b8',
+            'alert': '#dc3545'
+          }[activity.type] || '#6c757d';
+          
+          const div = document.createElement('div');
+          div.className = 'history-item';
+          div.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <i class="${icon}" style="color: ${color};"></i>
+              <div>
+                <div class="history-product">${activity.description}</div>
+                <div class="history-details">بواسطة ${activity.user} • ${activity.time}</div>
+              </div>
+            </div>
+          `;
+          
+          activityContainer.appendChild(div);
+        });
+      }
+
+
+      function initSalesChart() {
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        
+
+        const salesData = {
+          week: {
+            labels: ['السبت', 'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'],
+            data: [1200, 1900, 3000, 5000, 2000, 3000, 4500]
+          },
+          month: {
+            labels: ['الأسبوع 1', 'الأسبوع 2', 'الأسبوع 3', 'الأسبوع 4'],
+            data: [8500, 10200, 9800, 11500]
+          },
+          year: {
+            labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 
+                    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'],
+            data: [15000, 18000, 22000, 25000, 21000, 23000, 
+                   26000, 28000, 30000, 32000, 29000, 35000]
+          }
+        };
+        
+        let currentChart = null;
+        
+        function createChart(period) {
+          if (currentChart) {
+            currentChart.destroy();
+          }
+          
+          currentChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: salesData[period].labels,
+              datasets: [{
+                label: 'المبيعات',
+                data: salesData[period].data,
+                backgroundColor: 'rgba(0, 51, 102, 0.1)',
+                borderColor: 'rgba(0, 51, 102, 1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  display: true,
+                  position: 'top',
+                  labels: {
+                    font: {
+                      size: 12
+                    }
+                  }
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: {
+                    callback: function(value) {
+                      return '$' + value.toLocaleString();
+                    }
+                  }
+                }
+              }
+            }
+          });
+        }
+        
+
+        createChart('week');
+        
+ 
+        document.getElementById('chartPeriod').addEventListener('change', function() {
+          createChart(this.value);
+        });
+      }
+
+  
+      document.getElementById('toggleSidebar').addEventListener('click', function() {
+        document.getElementById('sidebar').classList.toggle('active');
+      });
+
+      document.addEventListener('click', function(event) {
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleSidebar');
+        
+        if (window.innerWidth <= 768) {
+          if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+            sidebar.classList.remove('active');
+          }
+        }
+      });
+
+
+      const langArBtn = document.getElementById('lang-ar');
+      const langEnBtn = document.getElementById('lang-en');
+      let currentLang = localStorage.getItem('birzeit-lang') || 'ar';
+      applyLanguage(currentLang);
+
+      langArBtn.addEventListener('click', () => applyLanguage('ar'));
+      langEnBtn.addEventListener('click', () => applyLanguage('en'));
+
+      function applyLanguage(lang) {
+        document.body.dir = lang === 'ar' ? 'rtl' : 'ltr';
+        langArBtn.classList.toggle('active', lang === 'ar');
+        langEnBtn.classList.toggle('active', lang === 'en');
+
+        document.querySelectorAll('[data-ar], [data-en]').forEach(el => {
+          const text = lang === 'ar' ? el.getAttribute('data-ar') : el.getAttribute('data-en');
+          if (text) el.textContent = text;
+        });
+
+        const titleElement = document.querySelector('title');
+        const titleText = lang === 'ar' ? titleElement.getAttribute('data-ar') : titleElement.getAttribute('data-en');
+        if (titleText) titleElement.textContent = titleText;
+
+        localStorage.setItem('birzeit-lang', lang);
+        
+   
+        const userData = getUserDataFromSession();
+        if (userData && userData.role) {
+          const roleElement = document.getElementById('adminRole');
+          if (roleElement) {
+         
+            roleElement.textContent = userData.role;
+          }
+        }
+      }
+
+
+      initDashboard();
+      
+    
+      setInterval(() => {
+    
+        console.log("تحديث البيانات...");
+      }, 30000);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقارير المخزون - مكتبة بيرزيت</title>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        .reports-container {
+            padding: 20px;
+        }
+        
+        .reports-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .generate-report-btn {
+            background: #003366;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .generate-report-btn:hover {
+            background: #00509E;
+        }
+        
+        .reports-filters {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .filter-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .filter-item label {
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .report-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 1px solid #eee;
+        }
+        
+        .report-card.wide {
+            grid-column: 1 / -1;
+        }
+        
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .report-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #003366;
+        }
+        
+        .report-icon {
+            font-size: 1.5rem;
+            color: #003366;
+        }
+        
+        .chart-container {
+            height: 250px;
+            position: relative;
+        }
+        
+        .stat-container {
+            padding: 1rem 0;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-label {
+            color: #666;
+        }
+        
+        .stat-value {
+            font-weight: 600;
+            color: #003366;
+        }
+        
+        .stat-trend {
+            font-size: 0.8rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            margin-right: 0.5rem;
+        }
+        
+        .trend-up {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .trend-down {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .trend-neutral {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .report-table th,
+        .report-table td {
+            padding: 0.8rem;
+            text-align: right;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .report-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .report-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+        
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .action-btn.download {
+            background: #28a745;
+            color: white;
+        }
+        
+        .action-btn.print {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .action-btn.share {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #003366;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .empty-reports {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+            grid-column: 1 / -1;
+        }
+        
+        .empty-reports i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #ddd;
+        }
+        
+        .date-range-picker {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .date-input {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- الشريط الجانبي -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar">
+                <div class="sidebar-sticky pt-3">
+                    <h6 class="sidebar-heading px-3 mt-4 mb-1 text-muted">
+                        <span>إدارة المخزون</span>
+                    </h6>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('inventory_management') }}">
+                                <i class="fas fa-warehouse"></i>
+                                لوحة المخزون
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('stock_orders') }}">
+                                <i class="fas fa-shopping-cart"></i>
+                                طلبات التوريد
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('stock_alerts') }}">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                التنبيهات
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('suppliers') }}">
+                                <i class="fas fa-truck"></i>
+                                الموردين
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{{ url_for('inventory_reports') }}">
+                                <i class="fas fa-chart-bar"></i>
+                                التقارير
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- المحتوى الرئيسي -->
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
+                <div class="reports-container">
+                    <!-- العنوان والزر -->
+                    <div class="reports-header pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">
+                            <i class="fas fa-chart-bar"></i>
+                            تقارير المخزون
+                        </h1>
+                        <button class="generate-report-btn" onclick="generateCustomReport()">
+                            <i class="fas fa-file-export"></i>
+                            إنشاء تقرير مخصص
+                        </button>
+                    </div>
+
+                    <!-- فلاتر التقارير -->
+                    <div class="reports-filters">
+                        <div class="filter-group">
+                            <div class="filter-item">
+                                <label>الفترة الزمنية</label>
+                                <select class="form-control" id="timePeriod" onchange="updateReports()">
+                                    <option value="weekly">أسبوعي</option>
+                                    <option value="monthly" selected>شهري</option>
+                                    <option value="quarterly">ربع سنوي</option>
+                                    <option value="yearly">سنوي</option>
+                                    <option value="custom">مخصص</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-item" id="customDateRange" style="display: none;">
+                                <label>الفترة المخصصة</label>
+                                <div class="date-range-picker">
+                                    <input type="date" class="date-input" id="startDate">
+                                    <span>إلى</span>
+                                    <input type="date" class="date-input" id="endDate">
+                                </div>
+                            </div>
+                            
+                            <div class="filter-item">
+                                <label>نوع التقرير</label>
+                                <select class="form-control" id="reportType" onchange="updateReports()">
+                                    <option value="overview">نظرة عامة</option>
+                                    <option value="stock">حركة المخزون</option>
+                                    <option value="sales">المبيعات والربحية</option>
+                                    <option value="suppliers">أداء الموردين</option>
+                                    <option value="alerts">تحليل التنبيهات</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-item">
+                                <label>التفصيل</label>
+                                <select class="form-control" id="reportDetail">
+                                    <option value="summary">ملخص</option>
+                                    <option value="detailed" selected>مفصل</option>
+                                    <option value="analytical">تحليلي</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-item">
+                                <button class="btn btn-primary" onclick="loadReports()" style="margin-top: 1.5rem;">
+                                    <i class="fas fa-sync-alt"></i> تحديث التقارير
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="reports-grid" id="reportsGrid">
+                        <!-- سيتم ملؤها بواسطة JavaScript -->
+                    </div>
+
+                    <!-- حالة التحميل -->
+                    <div id="loadingState" class="loading-spinner" style="display: none;">
+                        <div class="spinner"></div>
+                    </div>
+
+                    <!-- حالة فارغة -->
+                    <div id="emptyReports" class="empty-reports" style="display: none;">
+                        <i class="fas fa-chart-line"></i>
+                        <h4>لا توجد تقارير متاحة</h4>
+                        <p>استخدم الفلاتر أعلاه لإنشاء تقرير</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+  
+    <div class="modal fade" id="customReportModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">إنشاء تقرير مخصص</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="customReportForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>اسم التقرير</label>
+                                    <input type="text" class="form-control" id="reportName" 
+                                           placeholder="مثال: تقرير المخزون الربع الأول 2024" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>نوع التقرير</label>
+                                    <select class="form-control" id="customReportType" required>
+                                        <option value="inventory">تقرير المخزون</option>
+                                        <option value="movement">تقرير الحركة</option>
+                                        <option value="performance">تقرير الأداء</option>
+                                        <option value="financial">تقرير مالي</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>من تاريخ</label>
+                                    <input type="date" class="form-control" id="customStartDate" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>إلى تاريخ</label>
+                                    <input type="date" class="form-control" id="customEndDate" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>الأقسام المطلوبة</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="sectionSummary" checked>
+                                        <label class="form-check-label" for="sectionSummary">
+                                            ملخص المخزون
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="sectionMovement" checked>
+                                        <label class="form-check-label" for="sectionMovement">
+                                            حركة المخزون
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="sectionAlerts">
+                                        <label class="form-check-label" for="sectionAlerts">
+                                            التنبيهات
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="sectionSuppliers">
+                                        <label class="form-check-label" for="sectionSuppliers">
+                                            أداء الموردين
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="sectionProducts">
+                                        <label class="form-check-label" for="sectionProducts">
+                                            أداء المنتجات
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="sectionFinancial">
+                                        <label class="form-check-label" for="sectionFinancial">
+                                            التحليل المالي
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>تنسيق التقرير</label>
+                            <select class="form-control" id="reportFormat">
+                                <option value="pdf">PDF</option>
+                                <option value="excel">Excel</option>
+                                <option value="html">HTML</option>
+                                <option value="print">للطباعة</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>ملاحظات إضافية</label>
+                            <textarea class="form-control" id="reportNotes" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">إلغاء</button>
+                    <button type="button" class="btn btn-primary" onclick="generateReport()">إنشاء التقرير</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    
+        const reportsData = {
+            overview: {
+                title: "نظرة عامة على المخزون",
+                stats: [
+                    { label: "إجمالي قيمة المخزون", value: "$12,450", trend: "+5.2%", trendType: "up" },
+                    { label: "متوسط دوران المخزون", value: "32 يوم", trend: "-2.1%", trendType: "down" },
+                    { label: "نسبة المنتجات المنخفضة", value: "12%", trend: "+1.5%", trendType: "up" },
+                    { label: "معدل الطلبات الشهرية", value: "24 طلب", trend: "+8.3%", trendType: "up" }
+                ],
+                chartData: {
+                    labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'],
+                    datasets: [{
+                        label: 'قيمة المخزون',
+                        data: [9500, 11000, 10500, 12000, 11500, 12450],
+                        borderColor: '#003366',
+                        backgroundColor: 'rgba(0, 51, 102, 0.1)',
+                        fill: true
+                    }]
+                }
+            },
+            
+            stockMovement: {
+                title: "حركة المخزون الشهرية",
+                stats: [
+                    { label: "إجمالي الوارد", value: "1,245 وحدة", trend: "+15%", trendType: "up" },
+                    { label: "إجمالي الصادر", value: "980 وحدة", trend: "+8%", trendType: "up" },
+                    { label: "صافي الحركة", value: "+265 وحدة", trend: "+7%", trendType: "up" },
+                    { label: "معدل الدوران", value: "2.4 مرة", trend: "0%", trendType: "neutral" }
+                ],
+                chartData: {
+                    labels: ['الكتب', 'القرطاسية', 'المعدات', 'الطباعة', 'أخرى'],
+                    datasets: [
+                        {
+                            label: 'وارد',
+                            data: [450, 320, 180, 150, 145],
+                            backgroundColor: '#28a745'
+                        },
+                        {
+                            label: 'صادر',
+                            data: [380, 290, 120, 110, 80],
+                            backgroundColor: '#dc3545'
+                        }
+                    ]
+                }
+            },
+            
+            topProducts: {
+                title: "أفضل المنتجات أداءً",
+                items: [
+                    { product: "كتاب التفاضل والتكامل", sales: 45, revenue: "$1,125", growth: "+12%" },
+                    { product: "دفاتر جامعية", sales: 120, revenue: "$960", growth: "+8%" },
+                    { product: "أقلام زرقاء", sales: 85, revenue: "$425", growth: "+15%" },
+                    { product: "ورق A4", sales: 65, revenue: "$975", growth: "+5%" },
+                    { product: "مقالم", sales: 42, revenue: "$126", growth: "+3%" }
+                ]
+            },
+            
+            lowPerformance: {
+                title: "المنتجات ضعيفة الأداء",
+                items: [
+                    { product: "برايات", sales: 8, revenue: "$56", stock: 45, days: 180 },
+                    { product: "مساطر", sales: 12, revenue: "$48", stock: 38, days: 120 },
+                    { product: "أقلام رصاص", sales: 15, revenue: "$45", stock: 65, days: 90 },
+                    { product: "كتب هندسة", sales: 18, revenue: "$540", stock: 22, days: 60 },
+                    { product: "ألوان خشبية", sales: 10, revenue: "$150", stock: 32, days: 45 }
+                ]
+            },
+            
+            supplierPerformance: {
+                title: "أداء الموردين",
+                items: [
+                    { supplier: "مخزن بيرزيت الرئيسي", orders: 45, fulfillment: "98%", rating: "5.0" },
+                    { supplier: "شركة القرطاسية المتحدة", orders: 28, fulfillment: "95%", rating: "4.2" },
+                    { supplier: "مورد الكتب الوطنية", orders: 32, fulfillment: "92%", rating: "4.0" },
+                    { supplier: "مطبعة الجامعة", orders: 15, fulfillment: "88%", rating: "3.5" },
+                    { supplier: "مكتبة القدس", orders: 12, fulfillment: "85%", rating: "3.8" }
+                ]
+            },
+            
+            alertAnalysis: {
+                title: "تحليل التنبيهات",
+                stats: [
+                    { label: "إجمالي التنبيهات", value: "24", trend: "-10%", trendType: "down" },
+                    { label: "متوسط وقت الاستجابة", value: "4.2 ساعات", trend: "-15%", trendType: "down" },
+                    { label: "نسبة الحل", value: "92%", trend: "+3%", trendType: "up" },
+                    { label: "تكرار التنبيهات", value: "مرة كل 3 أيام", trend: "0%", trendType: "neutral" }
+                ],
+                chartData: {
+                    labels: ['منخفض', 'تحذير', 'حرج', 'معلومات'],
+                    datasets: [{
+                        data: [12, 8, 3, 1],
+                        backgroundColor: ['#17a2b8', '#ffc107', '#dc3545', '#6c757d']
+                    }]
+                }
+            }
+        };
+
+       
+        document.addEventListener('DOMContentLoaded', function() {
+            loadReports();
+            
+            document.getElementById('timePeriod').addEventListener('change', function() {
+                const customRange = document.getElementById('customDateRange');
+                customRange.style.display = this.value === 'custom' ? 'block' : 'none';
+            });
+            
+            
+            const today = new Date();
+            const lastMonth = new Date();
+            lastMonth.setMonth(lastMonth.getMonth() - 1);
+            
+            document.getElementById('startDate').value = lastMonth.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+            
+            document.getElementById('customStartDate').value = lastMonth.toISOString().split('T')[0];
+            document.getElementById('customEndDate').value = today.toISOString().split('T')[0];
+        });
+
+    
+        function loadReports() {
+            showLoading();
+            
+           
+            setTimeout(() => {
+                const reportType = document.getElementById('reportType').value;
+                renderReports(reportType);
+                hideLoading();
+            }, 1000);
+        }
+
+        function updateReports() {
+            loadReports();
+        }
+
+      
+        function showLoading() {
+            document.getElementById('loadingState').style.display = 'flex';
+            document.getElementById('reportsGrid').style.display = 'none';
+            document.getElementById('emptyReports').style.display = 'none';
+        }
+
+       
+        function hideLoading() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('reportsGrid').style.display = 'grid';
+        }
+
+       
+        function renderReports(type) {
+            const grid = document.getElementById('reportsGrid');
+            const emptyState = document.getElementById('emptyReports');
+            
+            if (!reportsData[type]) {
+                grid.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            
+            let html = '';
+            
+            switch(type) {
+                case 'overview':
+                    html = renderOverviewReport();
+                    break;
+                case 'stock':
+                    html = renderStockReport();
+                    break;
+                case 'sales':
+                    html = renderSalesReport();
+                    break;
+                case 'suppliers':
+                    html = renderSuppliersReport();
+                    break;
+                case 'alerts':
+                    html = renderAlertsReport();
+                    break;
+                default:
+                    html = renderOverviewReport();
+            }
+            
+            grid.innerHTML = html;
+            
+           
+            initCharts();
+        }
+
+     
+        function renderOverviewReport() {
+            return `
+                <!-- بطاقة النظرة العامة -->
+                <div class="report-card wide">
+                    <div class="report-header">
+                        <div class="report-title">
+                            <i class="fas fa-chart-line report-icon"></i>
+                            ${reportsData.overview.title}
+                        </div>
+                        <div class="report-actions">
+                            <button class="action-btn download" onclick="downloadReport('overview')">
+                                <i class="fas fa-download"></i> تحميل
+                            </button>
+                            <button class="action-btn print" onclick="printReport('overview')">
+                                <i class="fas fa-print"></i> طباعة
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="stat-container">
+                                ${reportsData.overview.stats.map(stat => `
+                                    <div class="stat-item">
+                                        <span class="stat-label">${stat.label}</span>
+                                        <span>
+                                            <span class="stat-trend ${stat.trendType === 'up' ? 'trend-up' : stat.trendType === 'down' ? 'trend-down' : 'trend-neutral'}">
+                                                ${stat.trend}
+                                            </span>
+                                            <span class="stat-value">${stat.value}</span>
+                                        </span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="chart-container">
+                                <canvas id="overviewChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- بطاقة أفضل المنتجات -->
+                <div class="report-card">
+                    <div class="report-header">
+                        <div class="report-title">
+                            <i class="fas fa-trophy report-icon"></i>
+                            ${reportsData.topProducts.title}
+                        </div>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th>المنتج</th>
+                                    <th>المبيعات</th>
+                                    <th>الإيرادات</th>
+                                    <th>النمو</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${reportsData.topProducts.items.map(item => `
+                                    <tr>
+                                        <td>${item.product}</td>
+                                        <td>${item.sales}</td>
+                                        <td>${item.revenue}</td>
+                                        <td><span class="trend-up">${item.growth}</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- بطاقة المنتجات ضعيفة الأداء -->
+                <div class="report-card">
+                    <div class="report-header">
+                        <div class="report-title">
+                            <i class="fas fa-exclamation-circle report-icon"></i>
+                            ${reportsData.lowPerformance.title}
+                        </div>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th>المنتج</th>
+                                    <th>المبيعات</th>
+                                    <th>المخزون</th>
+                                    <th>الأيام في المخزون</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${reportsData.lowPerformance.items.map(item => `
+                                    <tr>
+                                        <td>${item.product}</td>
+                                        <td>${item.sales}</td>
+                                        <td>${item.stock}</td>
+                                        <td><span class="trend-down">${item.days} يوم</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        
+        function renderStockReport() {
+            return `
+                <!-- بطاقة حركة المخزون -->
+                <div class="report-card wide">
+                    <div class="report-header">
+                        <div class="report-title">
+                            <i class="fas fa-exchange-alt report-icon"></i>
+                            ${reportsData.stockMovement.title}
+                        </div>
+                        <div class="report-actions">
+                            <button class="action-btn download" onclick="downloadReport('stock')">
+                                <i class="fas fa-download"></i> تحميل
+                            </button>
+                            <button class="action-btn print" onclick="printReport('stock')">
+                                <i class="fas fa-print"></i> طباعة
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="stat-container">
+                                ${reportsData.stockMovement.stats.map(stat => `
+                                    <div class="stat-item">
+                                        <span class="stat-label">${stat.label}</span>
+                                        <span>
+                                            <span class="stat-trend ${stat.trendType === 'up' ? 'trend-up' : stat.trendType === 'down' ? 'trend-down' : 'trend-neutral'}">
+                                                ${stat.trend}
+                                            </span>
+                                            <span class="stat-value">${stat.value}</span>
+                                        </span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="chart-container">
+                                <canvas id="stockChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+
+        function renderSalesReport() {
+            return `
+                <div class="report-card">
+                    <div class="report-header">
+                        <div class="report-title">
+                            <i class="fas fa-chart-line report-icon"></i>
+                            تقرير المبيعات الشهرية
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="report-card">
+                    <div class="report-header">
+                        <div class="report-title">
+                            <i class="fas fa-money-bill-wave report-icon"></i>
+                            تحليل الربحية
+                        </div>
+                    </div>
+                    <div class="stat-container">
+                        <div class="stat-item">
+                            <span class="stat-label">إجمالي الإيرادات</span>
+                            <span class="stat-value">$8,450</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">تكلفة المخزون</span>
+                            <span class="stat-value">$4,230</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">هامش الربح</span>
+                            <span class="stat-value">$4,220 (50%)</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">متوسط سعر الوحدة</span>
+                            <span class="stat-value">$15.80</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+     
+        function renderSuppliersReport() {
+            return `
+                <!-- بطاقة أداء الموردين -->
+                <div class="report-card wide">
+                    <div class="report-header">
+                        <div class="report-title">
+                            <i class="fas fa-truck report-icon"></i>
+                            ${reportsData.supplierPerformance.title}
+                        </div>
+                        <div class="report-actions">
+                            <button class="action-btn download" onclick="downloadReport('suppliers')">
+                                <i class="fas fa-download"></i> تحميل
+                            </button>
+                            <button class="action-btn print" onclick="printReport('suppliers')">
+                                <i class="fas fa-print"></i> طباعة
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th>المورد</th>
+                                    <th>عدد الطلبات</th>
+                                    <th>نسبة التنفيذ</th>
+                                    <th>التقييم</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${reportsData.supplierPerformance.items.map(item => `
+                                    <tr>
+                                        <td>${item.supplier}</td>
+                                        <td>${item.orders}</td>
+                                        <td>${item.fulfillment}</td>
+                                        <td>
+                                            <span class="stat-value">
+                                                ${generateStars(item.rating)}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+       
+        function renderAlertsReport() {
+            return `
+                <!-- بطاقة تحليل التنبيهات -->
+                <div class="report-card wide">
+                    <div class="report-header">
+                        <div class="report-title">
+                            <i class="fas fa-exclamation-triangle report-icon"></i>
+                            ${reportsData.alertAnalysis.title}
+                        </div>
+                        <div class="report-actions">
+                            <button class="action-btn download" onclick="downloadReport('alerts')">
+                                <i class="fas fa-download"></i> تحميل
+                            </button>
+                            <button class="action-btn print" onclick="printReport('alerts')">
+                                <i class="fas fa-print"></i> طباعة
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="stat-container">
+                                ${reportsData.alertAnalysis.stats.map(stat => `
+                                    <div class="stat-item">
+                                        <span class="stat-label">${stat.label}</span>
+                                        <span>
+                                            <span class="stat-trend ${stat.trendType === 'up' ? 'trend-up' : stat.trendType === 'down' ? 'trend-down' : 'trend-neutral'}">
+                                                ${stat.trend}
+                                            </span>
+                                            <span class="stat-value">${stat.value}</span>
+                                        </span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="chart-container">
+                                <canvas id="alertsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+      
+        function initCharts() {
+          
+            const overviewCtx = document.getElementById('overviewChart');
+            if (overviewCtx) {
+                new Chart(overviewCtx.getContext('2d'), {
+                    type: 'line',
+                    data: reportsData.overview.chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+            
+      
+            const stockCtx = document.getElementById('stockChart');
+            if (stockCtx) {
+                new Chart(stockCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: reportsData.stockMovement.chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                stacked: true
+                            },
+                            y: {
+                                stacked: true
+                            }
+                        }
+                    }
+                });
+            }
+            
+          
+            const alertsCtx = document.getElementById('alertsChart');
+            if (alertsCtx) {
+                new Chart(alertsCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: reportsData.alertAnalysis.chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+            
+          
+            const salesCtx = document.getElementById('salesChart');
+            if (salesCtx) {
+                new Chart(salesCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'],
+                        datasets: [{
+                            label: 'المبيعات',
+                            data: [4500, 5200, 4800, 6200, 5800, 7000],
+                            borderColor: '#28a745',
+                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+        }
+
+        
+        function generateCustomReport() {
+            $('#customReportModal').modal('show');
+        }
+
+  
+        function generateReport() {
+            const reportName = document.getElementById('reportName').value;
+            if (!reportName) {
+                alert('الرجاء إدخال اسم التقرير');
+                return;
+            }
+            
+        
+            showLoading();
+            
+            setTimeout(() => {
+                alert(`تم إنشاء التقرير "${reportName}" بنجاح\nسيتم تنزيله تلقائياً`);
+                $('#customReportModal').modal('hide');
+                document.getElementById('customReportForm').reset();
+                hideLoading();
+                
+            
+                const link = document.createElement('a');
+                link.download = `${reportName}.pdf`;
+                link.href = '#';
+                link.click();
+            }, 2000);
+        }
+
+     
+        function downloadReport(type) {
+            alert(`جاري تحميل تقرير ${type}...`);
+           
+        }
+
+  
+        function printReport(type) {
+            alert(`جاري طباعة تقرير ${type}...`);
+            window.print();
+        }
+
+   
+        function generateStars(rating) {
+            const numRating = parseFloat(rating);
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                if (i <= numRating) {
+                    stars += '<i class="fas fa-star text-warning"></i>';
+                } else if (i - 0.5 <= numRating) {
+                    stars += '<i class="fas fa-star-half-alt text-warning"></i>';
+                } else {
+                    stars += '<i class="far fa-star text-warning"></i>';
+                }
+            }
+            return stars;
+        }
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+</body>
+</html>

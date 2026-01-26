@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}مكتبة بيرزيت - طلباتي{% endblock %}
+
+{% block extra_head %}
+<style>
+  .wrap{
+    max-width: 1100px;
+    margin: 2rem auto;
+    background:#fff;
+    border-radius:14px;
+    padding: 1.5rem;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+  }
+  .title{
+    font-size:1.6rem;
+    color:#1a365d;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom: 1rem;
+  }
+  .table{
+    width:100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+  }
+  .table th, .table td{
+    padding:12px;
+    border-bottom:1px solid #eee;
+    text-align:right;
+  }
+  .table th{
+    background:#f8f9fa;
+    color:#1a365d;
+    font-weight:800;
+  }
+  .badge{
+    display:inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: .85rem;
+    font-weight: 800;
+    background:#eef2ff;
+    color:#1a365d;
+  }
+  .badge.processing{ background:#fff3cd; color:#7a5b00; }
+  .badge.completed{ background:#d1e7dd; color:#0f5132; }
+  .badge.canceled{ background:#f8d7da; color:#842029; }
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background:#1a365d;
+    color:#fff;
+    text-decoration:none;
+    font-weight:800;
+    border:none;
+    cursor:pointer;
+  }
+  .btn:hover{ background:#14304f; }
+  .empty{
+    padding:2rem;
+    text-align:center;
+    color:#666;
+    border:1px dashed #ddd;
+    border-radius: 12px;
+    margin-top: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrap">
+  <div class="title">
+    <i class="fas fa-receipt"></i>
+    <span>طلباتي</span>
+  </div>
+
+  {% if not orders %}
+    <div class="empty">
+      لا يوجد لديك طلبات حتى الآن.
+      <div style="margin-top:14px;">
+        <a class="btn" href="{{ url_for('books') }}">
+          <i class="fas fa-book"></i> تصفح الكتب
+        </a>
+      </div>
+    </div>
+  {% else %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>رقم الطلب</th>
+          <th>التاريخ</th>
+          <th>الحالة</th>
+          <th>الإجمالي</th>
+          <th>تفاصيل</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in orders %}
+        <tr>
+          <td>#{{ o.id }}</td>
+          <td>{{ o.order_date }}</td>
+          <td>
+            <span class="badge {{ o.status }}">
+              {{ o.status }}
+            </span>
+          </td>
+          <td>{{ "%.2f"|format(o.total_price or 0) }} ILS</td>
+          <td>
+            <a class="btn" href="{{ url_for('my_order_details', order_id=o.id) }}">
+              <i class="fas fa-eye"></i> عرض
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+</div>
+{% endblock %}

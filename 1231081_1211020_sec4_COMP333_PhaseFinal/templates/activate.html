@@ -1,0 +1,915 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تفعيل حسابك - مكتبة بيرزيت</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-blue: #1a365d;
+            --secondary-blue: #2d50a3;
+            --accent-green: #28A745;
+            --accent-orange: #FF6B35;
+            --light-gray: #F5F5F5;
+            --dark-gray: #333333;
+            --white: #FFFFFF;
+            --error-red: #DC3545;
+            --warning-yellow: #FFC107;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        .header {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            left: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .header-logo img {
+            height: 40px;
+            width: auto;
+        }
+        
+        .header-logo span {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        /* Activation Container */
+        .activation-container {
+            background-color: var(--white);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Header */
+        .activation-header {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+            color: var(--white);
+            padding: 2.5rem 2rem;
+            text-align: center;
+        }
+        
+        .activation-header .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .activation-header .logo img {
+            height: 60px;
+            width: auto;
+        }
+        
+        .activation-header .logo h2 {
+            font-size: 1.8rem;
+            color: var(--white);
+            margin: 0;
+        }
+        
+        .activation-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .activation-header p {
+            opacity: 0.9;
+            font-size: 0.95rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Steps Indicator */
+        .steps-indicator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            background-color: #f8f9fa;
+            position: relative;
+        }
+        
+        .steps-indicator::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: 0;
+            left: 0;
+            height: 3px;
+            background-color: #e0e0e0;
+            z-index: 1;
+        }
+        
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+        }
+        
+        .step.active .step-circle {
+            background-color: var(--accent-orange);
+            color: var(--white);
+            box-shadow: 0 0 0 5px rgba(255, 107, 53, 0.2);
+        }
+        
+        .step.completed .step-circle {
+            background-color: var(--accent-green);
+            color: var(--white);
+        }
+        
+        .step-label {
+            font-size: 0.85rem;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .step.active .step-label {
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+        
+        /* Form Container */
+        .form-container {
+            padding: 2.5rem 2rem;
+        }
+        
+        /* Forms */
+        .activation-form {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .activation-form.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Email Verification */
+        .email-verification {
+            text-align: center;
+        }
+        
+        .verification-icon {
+            font-size: 4rem;
+            color: var(--accent-orange);
+            margin-bottom: 1.5rem;
+        }
+        
+        .email-display {
+            background-color: var(--light-gray);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-blue);
+            border: 1px solid var(--light-gray);
+            font-size: 1.1rem;
+        }
+        
+        .verification-instructions {
+            margin-bottom: 2rem;
+            color: #666;
+            text-align: right;
+            line-height: 1.6;
+        }
+        
+        .verification-instructions ol {
+            text-align: right;
+            padding-right: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .verification-instructions li {
+            margin-bottom: 0.5rem;
+            padding-right: 0.5rem;
+        }
+        
+        /* Code Input */
+        .code-container {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        
+        .code-input {
+            width: 50px;
+            height: 60px;
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background-color: var(--white);
+        }
+        
+        .code-input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(26, 54, 93, 0.1);
+        }
+        
+        .code-input.filled {
+            border-color: var(--accent-green);
+            background-color: rgba(40, 167, 69, 0.05);
+        }
+        
+        /* Error Messages */
+        .error-message {
+            color: var(--error-red);
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: none;
+            text-align: center;
+        }
+        
+        .error-message.show {
+            display: block;
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 14px 25px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-width: 180px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-orange) 0%, #ff8535 100%);
+            color: var(--white);
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 53, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: var(--white);
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, var(--accent-green) 0%, #34ce57 100%);
+            color: var(--white);
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        /* Resend Link */
+        .resend-container {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .resend-link {
+            color: var(--primary-blue);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .resend-link:hover:not(:disabled) {
+            text-decoration: underline;
+        }
+        
+        .resend-link:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .resend-timer {
+            color: #666;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+        
+        /* Success Screen */
+        .success-screen {
+            text-align: center;
+            padding: 2rem 0;
+        }
+        
+        .success-icon {
+            font-size: 5rem;
+            color: var(--accent-green);
+            margin-bottom: 1.5rem;
+        }
+        
+        .success-title {
+            font-size: 1.8rem;
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+        }
+        
+        .success-message {
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .activation-header {
+                padding: 2rem 1.5rem;
+            }
+            
+            .activation-header .logo h2 {
+                font-size: 1.5rem;
+            }
+            
+            .activation-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .steps-indicator {
+                padding: 1rem;
+            }
+            
+            .step-label {
+                font-size: 0.75rem;
+            }
+            
+            .form-container {
+                padding: 1.5rem;
+            }
+            
+            .code-container {
+                gap: 5px;
+            }
+            
+            .code-input {
+                width: 40px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            body {
+                padding: 0.5rem;
+            }
+            
+            .header {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+            }
+            
+            .step-circle {
+                width: 35px;
+                height: 35px;
+                font-size: 0.9rem;
+            }
+            
+            .code-input {
+                width: 35px;
+                height: 45px;
+                font-size: 1.3rem;
+            }
+            
+            .verification-icon {
+                font-size: 3rem;
+            }
+            
+            .success-icon {
+                font-size: 4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <a href="index.html" class="header-logo">
+            <img src="https://cdn-icons-png.flaticon.com/512/2232/2232688.png" alt="مكتبة بيرزيت">
+            <span>مكتبة بيرزيت الرقمية</span>
+        </a>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <div class="activation-container">
+            <!-- Header -->
+            <div class="activation-header">
+                <div class="logo">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2232/2232688.png" alt="مكتبة بيرزيت">
+                    <h2>مكتبة بيرزيت الرقمية</h2>
+                </div>
+                <h1>تفعيل حسابك الجديد</h1>
+                <p>أكمل خطوات التفعيل للبدء باستخدام خدمات مكتبة بيرزيت الرقمية</p>
+            </div>
+
+            <!-- Steps Indicator -->
+            <div class="steps-indicator">
+                <div class="step active" id="step1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">البريد الإلكتروني</div>
+                </div>
+                <div class="step" id="step2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">رمز التحقق</div>
+                </div>
+                <div class="step" id="step3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">جاهز للبدء</div>
+                </div>
+            </div>
+
+            <!-- Forms Container -->
+            <div class="form-container">
+                <!-- Step 1: Email Verification -->
+                <div class="activation-form active" id="email-verification-form">
+                    <div class="email-verification">
+                        <div class="verification-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        
+                        <h3 style="margin-bottom: 1rem; color: var(--primary-blue);">تفعيل البريد الإلكتروني</h3>
+                        
+                        <div class="email-display" id="user-email-display">جاري تحميل بريدك الإلكتروني...</div>
+                        
+                        <div class="verification-instructions">
+                            <p>لقد أرسلنا رسالة تفعيل إلى بريدك الإلكتروني. يرجى اتباع الخطوات التالية:</p>
+                            <ol>
+                                <li>افتح صندوق الوارد لبريدك الإلكتروني</li>
+                                <li>ابحث عن رسالة من "مكتبة بيرزيت"</li>
+                                <li>اضغط على رابط التفعيل في الرسالة</li>
+                                <li>أو أدخل رمز التفعيل المكون من 6 أرقام أدناه</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="code-container">
+                            <input type="text" class="code-input" maxlength="1" data-index="0">
+                            <input type="text" class="code-input" maxlength="1" data-index="1">
+                            <input type="text" class="code-input" maxlength="1" data-index="2">
+                            <input type="text" class="code-input" maxlength="1" data-index="3">
+                            <input type="text" class="code-input" maxlength="1" data-index="4">
+                            <input type="text" class="code-input" maxlength="1" data-index="5">
+                        </div>
+                        
+                        <div class="error-message" id="code-error">رمز التفعيل غير صحيح. حاول مرة أخرى.</div>
+                        
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" id="verify-code-btn">
+                                <i class="fas fa-check-circle"></i>
+                                تحقق من الرمز
+                            </button>
+                            <button class="btn btn-secondary" id="skip-verification-btn">
+                                <i class="fas fa-forward"></i>
+                                تخطي الآن
+                            </button>
+                        </div>
+                        
+                        <div class="resend-container">
+                            <button class="resend-link" id="resend-code-btn">
+                                <i class="fas fa-redo"></i>
+                                إعادة إرسال رمز التفعيل
+                            </button>
+                            <div class="resend-timer" id="resend-timer">
+                                يمكنك إعادة الإرسال خلال: <span id="timer-count">60</span> ثانية
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Success Screen -->
+                <div class="activation-form" id="success-screen">
+                    <div class="success-screen">
+                        <div class="success-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h3 class="success-title">مبروك! تم تفعيل حسابك بنجاح</h3>
+                        <div class="success-message">
+                            <p>لقد تم تفعيل حسابك بنجاح في مكتبة بيرزيت الرقمية. يمكنك الآن الاستفادة من جميع خدماتنا ومميزاتنا.</p>
+                            <p style="margin-top: 1rem; font-weight: 600; color: var(--primary-blue);">
+                                مرحباً بك في مجتمع مكتبة بيرزيت!
+                            </p>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <a href="index.html" class="btn btn-success">
+                                <i class="fas fa-home"></i>
+                                الذهاب للصفحة الرئيسية
+                            </a>
+                            <a href="login.html" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt"></i>
+                                تسجيل الدخول الآن
+                            </a>
+                        </div>
+                        
+                        <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e0e0e0;">
+                            <h4 style="color: var(--primary-blue); margin-bottom: 1rem;">خطواتك التالية:</h4>
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem; text-align: right;">
+                                <div><i class="fas fa-book" style="color: var(--accent-orange); margin-left: 0.5rem;"></i> استعرض الكتب والمراجع العلمية</div>
+                                <div><i class="fas fa-shopping-cart" style="color: var(--accent-orange); margin-left: 0.5rem;"></i> ابدأ بالتسوق من مكتبتنا</div>
+                                <div><i class="fas fa-user-edit" style="color: var(--accent-orange); margin-left: 0.5rem;"></i> أكمل ملفك الشخصي للحصول على خصومات</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get user data from localStorage
+            const registrationData = JSON.parse(localStorage.getItem('registrationData')) || {
+                email: 'user@example.com',
+                firstName: 'مستخدم',
+                lastName: 'جديد'
+            };
+            
+            const newUserEmail = localStorage.getItem('newUserEmail') || registrationData.email;
+            
+            // Display user email
+            const emailDisplay = document.getElementById('user-email-display');
+            emailDisplay.textContent = newUserEmail;
+            
+            // Initialize steps
+            const steps = document.querySelectorAll('.step');
+            const forms = {
+                'email-verification': document.getElementById('email-verification-form'),
+                'success': document.getElementById('success-screen')
+            };
+            
+            let currentStep = 'email-verification';
+            let verificationCode = '';
+            let resendTimer = 60;
+            let timerInterval;
+            
+            // Initialize steps
+            function updateSteps(stepNumber) {
+                steps.forEach((step, index) => {
+                    step.classList.remove('active', 'completed');
+                    
+                    if (index + 1 < stepNumber) {
+                        step.classList.add('completed');
+                    } else if (index + 1 === stepNumber) {
+                        step.classList.add('active');
+                    }
+                });
+            }
+            
+            function goToStep(stepName, stepNumber) {
+                // Hide all forms
+                Object.values(forms).forEach(form => {
+                    form.classList.remove('active');
+                });
+                
+                // Show current form
+                forms[stepName].classList.add('active');
+                
+                // Update steps
+                updateSteps(stepNumber);
+                
+                currentStep = stepName;
+            }
+            
+            // Start resend timer
+            function startResendTimer() {
+                const timerElement = document.getElementById('timer-count');
+                const resendBtn = document.getElementById('resend-code-btn');
+                const timerContainer = document.getElementById('resend-timer');
+                
+                resendBtn.disabled = true;
+                timerContainer.style.display = 'block';
+                
+                timerInterval = setInterval(() => {
+                    resendTimer--;
+                    timerElement.textContent = resendTimer;
+                    
+                    if (resendTimer <= 0) {
+                        clearInterval(timerInterval);
+                        resendBtn.disabled = false;
+                        timerContainer.style.display = 'none';
+                        resendTimer = 60;
+                    }
+                }, 1000);
+            }
+            
+    
+            startResendTimer();
+            
+        
+            const codeInputs = document.querySelectorAll('.code-input');
+            
+            codeInputs.forEach((input, index) => {
+                input.addEventListener('input', function(e) {
+                    // Allow only numbers
+                    this.value = this.value.replace(/\D/g, '');
+                    
+                    if (this.value.length === 1) {
+                        this.classList.add('filled');
+                        
+                        // Move to next input
+                        if (index < codeInputs.length - 1) {
+                            codeInputs[index + 1].focus();
+                        }
+                    } else {
+                        this.classList.remove('filled');
+                    }
+                    
+             
+                    updateVerificationCode();
+                });
+                
+                input.addEventListener('keydown', function(e) {
+              
+                    if (e.key === 'Backspace' && this.value.length === 0 && index > 0) {
+                        codeInputs[index - 1].focus();
+                    }
+                });
+                
+        
+                input.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const pasteData = e.clipboardData.getData('text').replace(/\D/g, '').substring(0, 6);
+                    
+            
+                    pasteData.split('').forEach((char, charIndex) => {
+                        if (charIndex < codeInputs.length) {
+                            codeInputs[charIndex].value = char;
+                            codeInputs[charIndex].classList.add('filled');
+                        }
+                    });
+                    
+               
+                    const lastFilledIndex = Math.min(pasteData.length, codeInputs.length) - 1;
+                    if (codeInputs[lastFilledIndex]) {
+                        codeInputs[lastFilledIndex].focus();
+                    }
+                    
+                    updateVerificationCode();
+                });
+            });
+            
+            function updateVerificationCode() {
+                verificationCode = '';
+                codeInputs.forEach(input => {
+                    verificationCode += input.value;
+                });
+            }
+            
+          
+            const verifyCodeBtn = document.getElementById('verify-code-btn');
+            const codeError = document.getElementById('code-error');
+            
+            verifyCodeBtn.addEventListener('click', function() {
+                if (verificationCode.length === 6) {
+             
+        
+                    if (verificationCode === '123456' || verificationCode === '000000') {
+                        codeError.classList.remove('show');
+                        
+                  
+                        verifyCodeBtn.innerHTML = '<div class="spinner"></div> جاري التحقق...';
+                        verifyCodeBtn.disabled = true;
+                        
+                
+                        setTimeout(() => {
+                      
+                            const userData = {
+                                ...registrationData,
+                                activated: true,
+                                activatedAt: new Date().toISOString(),
+                                status: 'active'
+                            };
+                            
+                            localStorage.setItem('user', JSON.stringify(userData));
+                            localStorage.setItem('isLoggedIn', 'true');
+                            localStorage.setItem('userRole', 'user');
+                            
+                 
+                            localStorage.removeItem('registrationData');
+                            localStorage.removeItem('newUserEmail');
+                            
+                  
+                            goToStep('success', 3);
+                        }, 1500);
+                    } else {
+                        codeError.textContent = 'رمز التفعيل غير صحيح. حاول مرة أخرى.';
+                        codeError.classList.add('show');
+                        
+                
+                        codeInputs.forEach(input => {
+                            input.style.animation = 'shake 0.5s';
+                            setTimeout(() => {
+                                input.style.animation = '';
+                            }, 500);
+                        });
+                    }
+                } else {
+                    codeError.textContent = 'الرجاء إدخال رمز التفعيل المكون من 6 أرقام';
+                    codeError.classList.add('show');
+                }
+            });
+            
+    
+            document.getElementById('skip-verification-btn').addEventListener('click', function() {
+                if (confirm('هل أنت متأكد من تخطي عملية التحقق؟ يمكنك التحقق من بريدك الإلكتروني لاحقاً من إعدادات الحساب.')) {
+     
+                    const userData = {
+                        ...registrationData,
+                        activated: true,
+                        activatedAt: new Date().toISOString(),
+                        status: 'active',
+                        emailVerified: false
+                    };
+                    
+                    localStorage.setItem('user', JSON.stringify(userData));
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('userRole', 'user');
+                    
+      
+                    localStorage.removeItem('registrationData');
+                    localStorage.removeItem('newUserEmail');
+                    
+                    goToStep('success', 3);
+                }
+            });
+            
+
+            document.getElementById('resend-code-btn').addEventListener('click', function() {
+         
+                const resendBtn = this;
+                resendBtn.innerHTML = '<div class="spinner"></div> جاري الإرسال...';
+                resendBtn.disabled = true;
+                
+                setTimeout(() => {
+                    alert('✅ تم إرسال رمز تفعيل جديد إلى بريدك الإلكتروني');
+                    
+               
+                    codeInputs.forEach(input => {
+                        input.value = '';
+                        input.classList.remove('filled');
+                    });
+                    if (codeInputs[0]) {
+                        codeInputs[0].focus();
+                    }
+                    updateVerificationCode();
+                    
+           
+                    resendBtn.innerHTML = '<i class="fas fa-redo"></i> إعادة إرسال رمز التفعيل';
+                    startResendTimer();
+                }, 1000);
+            });
+            
+      
+            updateSteps(1);
+            
+     
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('test') === 'true') {
+           
+                setTimeout(() => {
+                    const testCode = '123456';
+                    testCode.split('').forEach((char, index) => {
+                        if (codeInputs[index]) {
+                            codeInputs[index].value = char;
+                            codeInputs[index].classList.add('filled');
+                        }
+                    });
+                    updateVerificationCode();
+                }, 500);
+            }
+            
+
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.activated) {
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+</body>
+</html>

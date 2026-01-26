@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-ar="الخدمات - مكتبة بيرزيت" data-en="Services - Birzeit Library">الخدمات - مكتبة بيرزيت</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-blue: #003366;
+            --secondary-blue: #00509E;
+            --accent-green: #28A745;
+            --accent-orange: #FF6B35;
+            --light-gray: #F5F5F5;
+            --dark-gray: #333333;
+            --white: #FFFFFF;
+        }
+
+        body {
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        /* Language Switcher */
+        .language-switcher {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background-color: var(--white);
+            border-radius: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+        }
+
+        .lang-btn {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .lang-btn.active {
+            background-color: var(--primary-blue);
+            color: var(--white);
+        }
+
+        /* Header */
+        header {
+            background-color: var(--primary-blue);
+            color: var(--white);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo img {
+            height: 50px;
+            width: auto;
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .user-actions a {
+            color: var(--white);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .user-actions a:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+
+        nav a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        nav a:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        /* Services Hero */
+        .services-hero {
+            background: linear-gradient(rgba(0,51,102,0.9), rgba(0,51,102,0.9)),
+                        url('https://images.unsplash.com/photo-1560179707-f14e90ef3623?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            color: var(--white);
+            text-align: center;
+            padding: 5rem 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .services-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .services-hero p {
+            font-size: 1.3rem;
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            opacity: 0.9;
+        }
+
+        /* Services Grid */
+        .services-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem 4rem;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: var(--primary-blue);
+            font-size: 2.5rem;
+            position: relative;
+            padding-bottom: 1rem;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background-color: var(--accent-orange);
+            border-radius: 2px;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .service-card {
+            background-color: var(--white);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+
+        .service-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .service-image {
+            height: 200px;
+            overflow: hidden;
+        }
+
+        .service-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+
+        .service-card:hover .service-image img {
+            transform: scale(1.1);
+        }
+
+        .service-content {
+            padding: 2rem;
+        }
+
+        .service-title {
+            font-size: 1.5rem;
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .service-price {
+            font-size: 1.8rem;
+            color: var(--accent-orange);
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .service-description {
+            color: #666;
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+
+        .service-features {
+            list-style: none;
+            margin-bottom: 1.5rem;
+            padding: 0;
+        }
+
+        .service-features li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .service-features i {
+            color: var(--accent-green);
+        }
+
+        .service-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-blue);
+        }
+
+        .btn-secondary {
+            background-color: var(--accent-green);
+            color: var(--white);
+        }
+
+        .btn-secondary:hover {
+            background-color: #218838;
+        }
+
+        /* Service Request Form */
+        .service-request {
+            background-color: var(--white);
+            border-radius: 10px;
+            padding: 3rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-top: 4rem;
+        }
+
+        .request-title {
+            text-align: center;
+            color: var(--primary-blue);
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+        }
+
+        .file-upload {
+            border: 2px dashed #ddd;
+            border-radius: 5px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .file-upload i {
+            font-size: 3rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn-large {
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            min-width: 200px;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--primary-blue);
+            color: var(--white);
+            padding: 3rem 2rem 1rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-links a {
+            color: #ddd;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .contact-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 0.8rem;
+        }
+
+        .copyright {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .top-bar {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .services-hero h1 {
+                font-size: 2rem;
+            }
+
+            .services-hero p {
+                font-size: 1rem;
+            }
+
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .service-actions {
+                flex-direction: column;
+            }
+
+            .user-actions a span, nav a span {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body dir="rtl">
+    <!-- Language Switcher -->
+    <div class="language-switcher">
+        <button class="lang-btn active" id="lang-ar" data-lang="ar">
+            <i class="fas fa-language"></i>
+            <span>العربية</span>
+        </button>
+        <button class="lang-btn" id="lang-en" data-lang="en">
+            <i class="fas fa-language"></i>
+            <span>English</span>
+        </button>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="top-bar">
+            <div class="logo">
+                <img src="https://cdn-icons-png.flaticon.com/512/2232/2232688.png" alt="مكتبة بيرزيت">
+                <h1 data-ar="مكتبة بيرزيت" data-en="Birzeit Library">مكتبة بيرزيت</h1>
+            </div>
+
+            <div class="user-actions">
+                <a href="cart.html">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span data-ar="سلة المشتريات" data-en="Shopping Cart">سلة المشتريات</span>
+                </a>
+                <a href="login.html">
+                    <i class="fas fa-user"></i>
+                    <span data-ar="تسجيل الدخول" data-en="Login">تسجيل الدخول</span>
+                </a>
+            </div>
+        </div>
+
+        <nav>
+            <a href="index.html"><i class="fas fa-home"></i> <span data-ar="الرئيسية" data-en="Home">الرئيسية</span></a>
+            <a href="books.html"><i class="fas fa-book"></i> <span data-ar="الكتب" data-en="Books">الكتب</span></a>
+            <a href="stationery.html"><i class="fas fa-pencil-alt"></i> <span data-ar="القرطاسية" data-en="Stationery">القرطاسية</span></a>
+            <a href="ebooks.html"><i class="fas fa-tablet-alt"></i> <span data-ar="الكتب الإلكترونية" data-en="E-Books">الكتب الإلكترونية</span></a>
+            <a href="services.html" style="background-color: rgba(255,255,255,0.2);">
+                <i class="fas fa-print"></i> <span data-ar="الخدمات" data-en="Services">الخدمات</span>
+            </a>
+        </nav>
+    </header>
+
+    <!-- Services Hero -->
+    <section class="services-hero">
+        <h1 data-ar="خدمات مكتبة بيرزيت" data-en="Birzeit Library Services">
+            خدمات مكتبة بيرزيت
+        </h1>
+        <p data-ar="نقدم لكم مجموعة متكاملة من الخدمات الطلابية بما في ذلك الطباعة، التصوير، التجليد، والخدمات المكتبية الأخرى."
+           data-en="We offer a comprehensive range of student services including printing, photocopying, binding, and other office services.">
+            نقدم لكم مجموعة متكاملة من الخدمات الطلابية بما في ذلك الطباعة، التصوير، التجليد، والخدمات المكتبية الأخرى.
+        </p>
+    </section>
+
+    <!-- Services Grid -->
+    <div class="services-container">
+        <h2 class="section-title" data-ar="خدماتنا" data-en="Our Services">
+            خدماتنا
+        </h2>
+
+        <div class="services-grid">
+            {% for s in services %}
+            <div class="service-card">
+                <div class="service-image">
+                    <img
+                        src="{{ s.image_url if s.image_url else 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80' }}"
+                        alt="{{ (s.name_ar if s.name_ar else s.name) | e }}">
+                </div>
+                <div class="service-content">
+                    <h3 class="service-title">
+                        <i class="{{ s.icon_class if s.icon_class else 'fas fa-print' }}"></i>
+                        <span data-ar="{{ (s.name_ar if s.name_ar else s.name) | e }}"
+                              data-en="{{ (s.name_en if s.name_en else s.name) | e }}">
+                            {{ (s.name_ar if s.name_ar else s.name) | e }}
+                        </span>
+                    </h3>
+
+                    <div class="service-price">
+                        ${{ '%.2f'|format(s.price if s.price is not none else 0) }}
+                        {% if s.unit_ar %}
+                            <span data-ar="{{ s.unit_ar | e }}" data-en="{{ (s.unit_en if s.unit_en else s.unit_ar) | e }}">
+                                {{ s.unit_ar | e }}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <p class="service-description"
+                       data-ar="{{ (s.description_ar if s.description_ar else s.description) | e }}"
+                       data-en="{{ (s.description_en if s.description_en else s.description) | e }}">
+                        {{ (s.description_ar if s.description_ar else s.description) | e }}
+                    </p>
+
+                    {% if s.features %}
+                    <ul class="service-features">
+                        {% for f in s.features.split(',') %}
+                        <li>
+                            <i class="fas fa-check"></i>
+                            <span>{{ f.strip() | e }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+
+                    <div class="service-actions">
+                        <button class="btn btn-primary order-service"
+                                data-service="{{ (s.slug if s.slug else s.id) }}"
+                                data-name-ar="{{ (s.name_ar if s.name_ar else s.name) | e }}"
+                                data-name-en="{{ (s.name_en if s.name_en else s.name) | e }}">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span data-ar="طلب الخدمة" data-en="Order Service">طلب الخدمة</span>
+                        </button>
+                        <button class="btn btn-secondary">
+                            <i class="fas fa-info-circle"></i>
+                            <span data-ar="تفاصيل" data-en="Details">تفاصيل</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <p style="grid-column: 1 / -1; text-align:center;">
+                لا توجد خدمات حالياً
+            </p>
+            {% endfor %}
+        </div>
+
+        <!-- Service Request Form -->
+        <div class="service-request">
+            <h3 class="request-title" data-ar="طلب خدمة مخصصة" data-en="Request Custom Service">
+                طلب خدمة مخصصة
+            </h3>
+
+            <form id="serviceRequestForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" data-ar="نوع الخدمة" data-en="Service Type">نوع الخدمة</label>
+                        <select class="form-control" required id="serviceType">
+                            <option value="" data-ar="اختر نوع الخدمة" data-en="Select Service Type">اختر نوع الخدمة</option>
+                            {% for s in services %}
+                                <option value="{{ (s.slug if s.slug else s.id) }}">
+                                    {{ (s.name_ar if s.name_ar else s.name) | e }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" data-ar="الكمية / عدد الصفحات" data-en="Quantity / Number of Pages">الكمية / عدد الصفحات</label>
+                        <input type="number" class="form-control" min="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" data-ar="حجم الورق" data-en="Paper Size">حجم الورق</label>
+                        <select class="form-control" required>
+                            <option value="A4" data-ar="A4" data-en="A4">A4</option>
+                            <option value="A3" data-ar="A3" data-en="A3">A3</option>
+                            <option value="letter" data-ar="Letter" data-en="Letter">Letter</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" data-ar="نوع الورق" data-en="Paper Type">نوع الورق</label>
+                        <select class="form-control" required>
+                            <option value="normal" data-ar="عادي" data-en="Normal">عادي</option>
+                            <option value="glossy" data-ar="لامع" data-en="Glossy">لامع</option>
+                            <option value="photo" data-ar="فوتو" data-en="Photo">فوتو</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" data-ar="اللون" data-en="Color">اللون</label>
+                        <select class="form-control" required>
+                            <option value="color" data-ar="ملون" data-en="Color">ملون</option>
+                            <option value="black-white" data-ar="أسود وأبيض" data-en="Black & White">أسود وأبيض</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" data-ar="الفرع المفضل" data-en="Preferred Branch">الفرع المفضل</label>
+                        <select class="form-control" required>
+                            <option value="main" data-ar="الفرع الرئيسي" data-en="Main Branch">الفرع الرئيسي</option>
+                            <option value="engineering" data-ar="فرع الهندسة" data-en="Engineering Branch">فرع الهندسة</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" data-ar="رفع الملفات" data-en="Upload Files">رفع الملفات</label>
+                    <div class="file-upload" id="fileUploadArea">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p data-ar="اسحب وأفلت ملفاتك هنا أو انقر للاختيار"
+                           data-en="Drag & drop your files here or click to select">
+                            اسحب وأفلت ملفاتك هنا أو انقر للاختيار
+                        </p>
+                        <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" multiple style="display: none;" id="serviceFileInput">
+                    </div>
+                    <div id="selectedFiles" style="margin-top: 1rem; display: none;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" data-ar="ملاحظات إضافية" data-en="Additional Notes">ملاحظات إضافية</label>
+                    <textarea class="form-control" rows="4" placeholder="أي تعليمات إضافية..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="reset" class="btn btn-large" data-ar="مسح النموذج" data-en="Clear Form">مسح النموذج</button>
+                    <button type="submit" class="btn btn-primary btn-large" data-ar="إرسال الطلب" data-en="Submit Request">إرسال الطلب</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <img src="https://cdn-icons-png.flaticon.com/512/2232/2232688.png" alt="مكتبة بيرزيت"
+                     style="height: 60px; margin-bottom: 1rem;">
+                <p data-ar="منصة متكاملة للكتب الجامعية، القرطاسية، الخدمات الطلابية والمكتبة الرقمية."
+                   data-en="An integrated platform for university books, stationery, student services and digital library.">
+                    منصة متكاملة للكتب الجامعية، القرطاسية، الخدمات الطلابية والمكتبة الرقمية.
+                </p>
+            </div>
+
+            <div class="footer-section">
+                <h3 data-ar="روابط سريعة" data-en="Quick Links">روابط سريعة</h3>
+                <ul class="footer-links">
+                    <li><a href="index.html"><i class="fas fa-home"></i> <span data-ar="الرئيسية" data-en="Home">الرئيسية</span></a></li>
+                    <li><a href="books.html"><i class="fas fa-book"></i> <span data-ar="الكتب" data-en="Books">الكتب</span></a></li>
+                    <li><a href="services.html"><i class="fas fa-print"></i> <span data-ar="الخدمات" data-en="Services">الخدمات</span></a></li>
+                    <li><a href="branches.html"><i class="fas fa-map-marker-alt"></i> <span data-ar="الفروع" data-en="Branches">الفروع</span></a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h3 data-ar="اتصل بنا" data-en="Contact Us">اتصل بنا</h3>
+                <div class="contact-info">
+                    <i class="fas fa-phone"></i>
+                    <span>02-298-2000</span>
+                </div>
+                <div class="contact-info">
+                    <i class="fas fa-envelope"></i>
+                    <span>services@birzeit-library.ps</span>
+                </div>
+                <div class="contact-info">
+                    <i class="fas fa-clock"></i>
+                    <span data-ar="الأحد - الخميس: 8 صباحاً - 8 مساءً" data-en="Sun - Thu: 8 AM - 8 PM">الأحد - الخميس: 8 صباحاً - 8 مساءً</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="copyright">
+            <p data-ar="© 2024 مكتبة بيرزيت. جميع الحقوق محفوظة."
+               data-en="© 2024 Birzeit Library. All rights reserved.">
+                © 2024 مكتبة بيرزيت. جميع الحقوق محفوظة.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+         
+            const langArBtn = document.getElementById('lang-ar');
+            const langEnBtn = document.getElementById('lang-en');
+
+            let currentLang = localStorage.getItem('birzeit-lang') || 'ar';
+            applyLanguage(currentLang);
+
+            langArBtn.addEventListener('click', () => applyLanguage('ar'));
+            langEnBtn.addEventListener('click', () => applyLanguage('en'));
+
+            function applyLanguage(lang) {
+                currentLang = lang; 
+
+                document.body.dir = lang === 'ar' ? 'rtl' : 'ltr';
+                langArBtn.classList.toggle('active', lang === 'ar');
+                langEnBtn.classList.toggle('active', lang === 'en');
+
+                document.querySelectorAll('[data-ar], [data-en]').forEach(element => {
+                    const text = element.getAttribute(`data-${lang}`);
+                    if (text) element.textContent = text;
+                });
+
+                document.querySelectorAll('[data-ar-alt], [data-en-alt]').forEach(element => {
+                    const alt = element.getAttribute(`data-${lang}-alt`);
+                    if (alt) element.alt = alt;
+                });
+
+                localStorage.setItem('birzeit-lang', lang);
+            }
+
+          
+            const orderButtons = document.querySelectorAll('.order-service');
+            orderButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const serviceValue = this.dataset.service;
+                    const serviceName = (currentLang === 'ar') ? this.dataset.nameAr : this.dataset.nameEn;
+
+                    // Auto-fill the form
+                    const serviceTypeSelect = document.getElementById('serviceType');
+                    if (serviceTypeSelect) serviceTypeSelect.value = serviceValue;
+
+                    // Scroll to form
+                    const form = document.getElementById('serviceRequestForm');
+                    form.scrollIntoView({ behavior: 'smooth' });
+
+                    // Show message
+                    const message = currentLang === 'ar'
+                        ? `تم اختيار خدمة ${serviceName}. يرجى تعبئة باقي المعلومات`
+                        : `Selected service: ${serviceName}. Please fill the remaining information`;
+                    alert(message);
+                });
+            });
+
+            // File Upload
+            const fileUploadArea = document.getElementById('fileUploadArea');
+            const fileInput = document.getElementById('serviceFileInput');
+            const selectedFilesDiv = document.getElementById('selectedFiles');
+
+            fileUploadArea.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    selectedFilesDiv.style.display = 'block';
+                    selectedFilesDiv.innerHTML = '<strong>' +
+                        (currentLang === 'ar' ? 'الملفات المختارة:' : 'Selected files:') +
+                        '</strong><br>';
+
+                    Array.from(this.files).forEach(file => {
+                        selectedFilesDiv.innerHTML +=
+                            `<div style="margin: 5px 0; padding: 5px; background: #f8f9fa; border-radius: 5px;">
+                                <i class="fas fa-file"></i> ${file.name} (${(file.size/1024).toFixed(2)} KB)
+                            </div>`;
+                    });
+                }
+            });
+
+      
+            const serviceRequestForm = document.getElementById('serviceRequestForm');
+            serviceRequestForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                if (fileInput.files.length === 0) {
+                    const message = currentLang === 'ar'
+                        ? 'يرجى رفع الملفات المطلوبة'
+                        : 'Please upload the required files';
+                    alert(message);
+                    return;
+                }
+
+         
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+
+                submitBtn.innerHTML = currentLang === 'ar'
+                    ? '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...'
+                    : '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                submitBtn.disabled = true;
+
+                setTimeout(() => {
+                    const successMsg = currentLang === 'ar'
+                        ? 'تم إرسال طلب الخدمة بنجاح! سنتواصل معك قريباً.'
+                        : 'Service request submitted successfully! We will contact you soon.';
+                    alert(successMsg);
+
+                    
+                    serviceRequestForm.reset();
+                    selectedFilesDiv.style.display = 'none';
+                    selectedFilesDiv.innerHTML = '';
+
+               
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }, 2000);
+            });
+
+          
+            fileUploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.style.backgroundColor = '#f0f0f0';
+            });
+
+            fileUploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.style.backgroundColor = '';
+            });
+
+            fileUploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.style.backgroundColor = '';
+
+                if (e.dataTransfer.files.length) {
+                    fileInput.files = e.dataTransfer.files;
+                    const event = new Event('change', { bubbles: true });
+                    fileInput.dispatchEvent(event);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

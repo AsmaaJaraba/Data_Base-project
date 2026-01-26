@@ -1,0 +1,458 @@
+{% extends "base.html" %}
+
+{% block title %}الكتب الإلكترونية{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* Page-only styles (kept from your design, without duplicating header/footer) */
+  :root {
+    --primary-blue: #1a365d;
+    --secondary-blue: #2d50a3;
+    --accent-gold: #d4af37;
+    --light-gray: #f8f9fa;
+    --dark-gray: #333;
+    --white: #ffffff;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --purple: #6f42c1;
+  }
+
+  .ebooks-page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+
+  /* Hero Section */
+  .hero-section {
+    text-align: center;
+    padding: 3rem 1rem;
+    background: linear-gradient(rgba(106, 66, 193, 0.9), rgba(106, 66, 193, 0.9)),
+      url('https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1350&q=80');
+    background-size: cover;
+    background-position: center;
+    border-radius: 20px;
+    color: var(--white);
+    margin-bottom: 3rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  }
+  .hero-title { font-size: 3rem; margin-bottom: 1rem; }
+  .hero-subtitle {
+    font-size: 1.3rem; margin-bottom: 2rem; opacity: 0.95;
+    max-width: 800px; margin-left:auto; margin-right:auto;
+  }
+
+  .search-box { max-width: 600px; margin: 1.5rem auto 0; position: relative; }
+  .search-box input {
+    width: 100%;
+    padding: 18px 25px;
+    padding-left: 60px;
+    border-radius: 50px;
+    border: none;
+    font-size: 1.1rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+  .search-box i {
+    position: absolute;
+    right: 25px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    font-size: 1.2rem;
+  }
+
+  .hero-features {
+    display:flex; justify-content:center; gap:3rem; margin-top:2.5rem; flex-wrap:wrap;
+  }
+  .feature { text-align:center; max-width:200px; }
+  .feature-icon { font-size:2.5rem; color: var(--accent-gold); margin-bottom: 0.7rem; }
+
+  /* Categories */
+  .categories-section {
+    background: var(--white);
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 3rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+  }
+  .categories-header { text-align:center; margin-bottom: 1.5rem; }
+  .section-title { font-size:2rem; color: var(--primary-blue); margin-bottom:0.5rem; }
+  .section-subtitle { color:#666; max-width: 650px; margin:0 auto; }
+
+  .categories-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-top: 1.5rem;
+  }
+  .category-card {
+    background: var(--light-gray);
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    cursor: pointer;
+  }
+  .category-card:hover {
+    border-color: var(--purple);
+    transform: translateY(-5px);
+    background: var(--white);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+  .category-icon { font-size:3rem; color: var(--purple); margin-bottom:1rem; }
+  .category-title { font-size: 1.3rem; color: var(--primary-blue); margin-bottom: 0.3rem; }
+  .category-count { color:#666; font-size: 0.9rem; }
+
+  /* Ebooks grid */
+  .ebooks-section { margin-bottom: 4rem; }
+  .ebooks-header {
+    display:flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .ebooks-count { color: var(--primary-blue); font-weight: 600; }
+  .sort-select {
+    padding: 10px 20px;
+    border: 2px solid var(--light-gray);
+    border-radius: 25px;
+    background: var(--white);
+    cursor: pointer;
+    font-size: 1rem;
+  }
+
+  .ebooks-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+
+  .ebook-card {
+    background: var(--white);
+    border-radius: 15px;
+    overflow:hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+    position: relative;
+  }
+  .ebook-card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.12); }
+
+  .ebook-badge {
+    position:absolute; top: 15px; left:15px;
+    background: var(--purple);
+    color: var(--white);
+    padding: 5px 15px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    z-index: 1;
+  }
+
+  .ebook-image { height: 200px; position: relative; overflow:hidden; }
+  .ebook-image img { width:100%; height:100%; object-fit: cover; transition: transform 0.5s ease; }
+  .ebook-card:hover .ebook-image img { transform: scale(1.08); }
+
+  .ebook-overlay {
+    position:absolute; bottom:0; right:0; width:100%;
+    background: linear-gradient(to top, rgba(111,66,193,0.8), transparent);
+    padding: 1rem;
+    color: var(--white);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .ebook-card:hover .ebook-overlay { opacity: 1; }
+
+  .ebook-actions { display:flex; justify-content:center; gap: 10px; }
+  .action-icon {
+    width:40px; height:40px; border-radius:50%;
+    background: rgba(255,255,255,0.2);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition: all 0.3s;
+  }
+  .action-icon:hover { background: var(--accent-gold); transform: scale(1.1); }
+
+  .ebook-info { padding: 1.5rem; }
+  .ebook-title { font-size:1.2rem; font-weight:600; color: var(--primary-blue); margin-bottom:0.5rem; }
+  .ebook-author { color:#666; font-size:0.9rem; margin-bottom:0.5rem; display:flex; align-items:center; gap:6px; }
+  .ebook-category {
+    background: var(--light-gray);
+    color: var(--purple);
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    display:inline-block;
+    margin-bottom: 1rem;
+  }
+
+  .ebook-price {
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    margin-bottom: 1.2rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid #eee;
+  }
+  .current-price { color: var(--accent-gold); font-size: 1.6rem; font-weight: 800; }
+  .format-badge {
+    background: var(--light-gray);
+    color: var(--purple);
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .ebook-buttons { display:flex; gap: 10px; }
+  .btn {
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor:pointer;
+    font-weight: 700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    flex:1;
+    transition: all 0.3s;
+  }
+  .btn-primary { background: var(--purple); color: var(--white); }
+  .btn-primary:hover { background:#5a32a3; transform: translateY(-2px); }
+  .btn-secondary { background: var(--accent-gold); color: var(--dark-gray); }
+  .btn-secondary:hover { background:#e6b325; transform: translateY(-2px); }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero-title { font-size: 2rem; }
+    .hero-subtitle { font-size: 1.05rem; }
+    .ebooks-grid { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+    .ebook-buttons { flex-direction: column; }
+    .btn { width: 100%; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ebooks-page">
+  <!-- Hero -->
+  <section class="hero-section">
+    <h1 class="hero-title">الكتب الإلكترونية</h1>
+    <p class="hero-subtitle">
+      اكتشف عالمًا من المعرفة الرقمية. أضف كتابك للسلة، ثم أكمل الدفع من صفحة السلة.
+    </p>
+
+    <div class="search-box">
+      <input id="ebookSearchInput" type="text" placeholder="ابحث عن كتاب إلكتروني...">
+      <i class="fas fa-search"></i>
+    </div>
+
+    <div class="hero-features">
+      <div class="feature">
+        <div class="feature-icon"><i class="fas fa-bolt"></i></div>
+        <h4>تحميل فوري</h4>
+        <p>بعد الدفع مباشرة</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon"><i class="fas fa-sync"></i></div>
+        <h4>مزامنة</h4>
+        <p>على كل الأجهزة</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon"><i class="fas fa-mobile-alt"></i></div>
+        <h4>متعدد الأجهزة</h4>
+        <p>هاتف/تابلت/كمبيوتر</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories -->
+  <section class="categories-section">
+    <div class="categories-header">
+      <h2 class="section-title">تصفح حسب التخصص</h2>
+      <p class="section-subtitle">اضغطي على تصنيف لتصفية النتائج</p>
+    </div>
+
+    <div class="categories-grid">
+      <div class="category-card" data-category="programming">
+        <div class="category-icon"><i class="fas fa-code"></i></div>
+        <h3 class="category-title">البرمجة</h3>
+        <p class="category-count">—</p>
+      </div>
+
+      <div class="category-card" data-category="business">
+        <div class="category-icon"><i class="fas fa-chart-line"></i></div>
+        <h3 class="category-title">إدارة الأعمال</h3>
+        <p class="category-count">—</p>
+      </div>
+
+      <div class="category-card" data-category="design">
+        <div class="category-icon"><i class="fas fa-paint-brush"></i></div>
+        <h3 class="category-title">التصميم</h3>
+        <p class="category-count">—</p>
+      </div>
+
+      <div class="category-card" data-category="science">
+        <div class="category-icon"><i class="fas fa-flask"></i></div>
+        <h3 class="category-title">العلوم</h3>
+        <p class="category-count">—</p>
+      </div>
+
+      <div class="category-card" data-category="all" title="عرض الكل">
+        <div class="category-icon"><i class="fas fa-layer-group"></i></div>
+        <h3 class="category-title">الكل</h3>
+        <p class="category-count">—</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Grid -->
+  <section class="ebooks-section">
+    <div class="ebooks-header">
+      <div>
+        <h2 class="section-title">كتب إلكترونية</h2>
+        <p class="ebooks-count">عرض <span id="ebooks-count">0</span> كتاب</p>
+      </div>
+
+      <select class="sort-select" onchange="sortEbooks(this.value)">
+        <option value="newest">الترتيب الافتراضي</option>
+        <option value="price-low">السعر: منخفض → مرتفع</option>
+        <option value="price-high">السعر: مرتفع → منخفض</option>
+      </select>
+    </div>
+
+    <div class="ebooks-grid" id="ebooks-grid">
+      {% for p in products %}
+      <div class="ebook-card"
+           data-category="{{ p.category|default('all', true) }}"
+           data-price="{{ p.price|default(0, true) }}"
+           data-title="{{ p.name|default('', true)|e }}"
+           data-author="{{ p.author|default('', true)|e }}">
+        <div class="ebook-badge">{{ p.badge|default('E-BOOK', true) }}</div>
+
+        <div class="ebook-image">
+          <img
+            src="{{ p.image_url|default('https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1350&q=80', true) }}"
+            alt="{{ p.name|default('كتاب إلكتروني', true)|e }}">
+          <div class="ebook-overlay">
+            <div class="ebook-actions">
+              <div class="action-icon" title="أضف للسلة" onclick="addToCartAndGo({{ p.id }}, 1)">
+                <i class="fas fa-cart-plus"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ebook-info">
+          <h3 class="ebook-title">{{ p.name|default('كتاب إلكتروني', true) }}</h3>
+
+          {% if p.author %}
+          <p class="ebook-author"><i class="fas fa-user-edit"></i> {{ p.author }}</p>
+          {% endif %}
+
+          {% if p.category %}
+          <span class="ebook-category">{{ p.category }}</span>
+          {% endif %}
+
+          <div class="ebook-price">
+            <span class="current-price">${{ '%.2f'|format(p.price|float) }}</span>
+            <span class="format-badge">{{ p.format|default('PDF', true) }}</span>
+          </div>
+
+          <div class="ebook-buttons">
+            <button class="btn btn-primary" onclick="addToCartAndGo({{ p.id }}, 1)">
+              <i class="fas fa-shopping-cart"></i>
+              أضف للسلة
+            </button>
+
+            <button class="btn btn-secondary" onclick="alert('ميزة قراءة عينة سيتم ربطها لاحقاً')">
+              <i class="fas fa-book-open"></i>
+              قراءة عينة
+            </button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+
+
+  let currentEbookFilter = 'all';
+  let currentSearchQuery = '';
+
+  function updateEbooksCount() {
+    const visible = Array.from(document.querySelectorAll('.ebook-card'))
+      .filter(card => card.style.display !== 'none');
+    const el = document.getElementById('ebooks-count');
+    if (el) el.textContent = visible.length;
+  }
+
+  function applyEbookFilterAndSearch() {
+    const cards = document.querySelectorAll('.ebook-card');
+    const q = (currentSearchQuery || '').trim().toLowerCase();
+
+    cards.forEach(card => {
+      const cat = (card.dataset.category || 'all').toLowerCase();
+      const matchesCategory = (currentEbookFilter === 'all' || cat === currentEbookFilter);
+
+      const title = (card.dataset.title || '').toLowerCase();
+      const author = (card.dataset.author || '').toLowerCase();
+      const matchesSearch = (!q || title.includes(q) || author.includes(q));
+
+      card.style.display = (matchesCategory && matchesSearch) ? 'block' : 'none';
+    });
+
+    updateEbooksCount();
+  }
+
+  function sortEbooks(criteria) {
+    const grid = document.getElementById('ebooks-grid');
+    if (!grid) return;
+
+    const cards = Array.from(grid.querySelectorAll('.ebook-card'));
+    cards.sort((a, b) => {
+      const pa = parseFloat(a.dataset.price || '0');
+      const pb = parseFloat(b.dataset.price || '0');
+
+      if (criteria === 'price-low') return pa - pb;
+      if (criteria === 'price-high') return pb - pa;
+      return 0; // newest/default
+    });
+
+    grid.innerHTML = '';
+    cards.forEach(c => grid.appendChild(c));
+    applyEbookFilterAndSearch();
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Search
+    const searchInput = document.getElementById('ebookSearchInput');
+    if (searchInput) {
+      searchInput.addEventListener('input', function() {
+        currentSearchQuery = this.value;
+        applyEbookFilterAndSearch();
+      });
+    }
+
+
+    document.querySelectorAll('.category-card').forEach(card => {
+      card.addEventListener('click', function() {
+        const c = (this.dataset.category || 'all').toLowerCase();
+        currentEbookFilter = c;
+        applyEbookFilterAndSearch();
+      });
+    });
+
+    applyEbookFilterAndSearch();
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+{% block title %}مكتبة بيرزيت - سلة المشتريات{% endblock %}
+
+{% block extra_head %}
+<style>
+  .cart-wrap{
+    max-width: 1100px;
+    margin: 2rem auto;
+    background: #fff;
+    border-radius: 14px;
+    padding: 1.5rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,.08);
+  }
+
+  .cart-title{
+    font-size: 1.6rem;
+    color:#1a365d;
+    margin-bottom: 1rem;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+
+  .cart-table{
+    width:100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+  }
+  .cart-table th, .cart-table td{
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    text-align: right;
+    vertical-align: middle;
+    color:#333;
+  }
+  .cart-table th{
+    color:#1a365d;
+    background:#f8f9fa;
+    font-weight:700;
+  }
+
+  .qty-controls{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    justify-content: flex-start;
+  }
+  .qty-btn{
+    width:34px; height:34px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    background:#fff;
+    cursor:pointer;
+    font-size: 18px;
+    line-height: 1;
+  }
+  .qty-box{
+    min-width: 50px;
+    text-align:center;
+    padding: 8px 10px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    background:#fff;
+  }
+
+  .danger-btn{
+    border:none;
+    background:#dc3545;
+    color:#fff;
+    padding:8px 12px;
+    border-radius:8px;
+    cursor:pointer;
+  }
+  .muted-btn{
+    border:none;
+    background:#f1f3f5;
+    color:#333;
+    padding:8px 12px;
+    border-radius:8px;
+    cursor:pointer;
+  }
+
+  .cart-summary{
+    margin-top: 1.5rem;
+    display:flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items:center;
+    border-top: 1px solid #eee;
+    padding-top: 1rem;
+  }
+
+  .total-box{
+    font-size: 1.2rem;
+    color:#1a365d;
+    font-weight: 800;
+  }
+
+  .empty{
+    padding: 2rem;
+    text-align:center;
+    color:#666;
+    border:1px dashed #ddd;
+    border-radius: 12px;
+    margin-top: 1rem;
+  }
+
+  .go-btn{
+    display:inline-flex;
+    gap:8px;
+    align-items:center;
+    justify-content:center;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border:none;
+    cursor:pointer;
+    background:#1a365d;
+    color:#fff;
+    text-decoration:none;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cart-wrap">
+  <div class="cart-title">
+    <i class="fas fa-shopping-cart"></i>
+    <span>سلة المشتريات</span>
+  </div>
+
+  <div id="cartContainer"></div>
+
+  <div class="cart-summary" id="cartSummary" style="display:none;">
+    <div class="total-box">
+      الإجمالي: <span id="cartTotal">0</span> ILS
+    </div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="muted-btn" onclick="clearCart()">
+        <i class="fas fa-trash"></i> تفريغ السلة
+      </button>
+      <a class="go-btn" href="{{ url_for('checkout') }}">
+        <i class="fas fa-credit-card"></i> إتمام الشراء
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  function money(n){
+    const x = Number(n || 0);
+    return x.toFixed(2);
+  }
+
+  async function apiGetCart(){
+    const r = await fetch("/api/cart", { method: "GET" });
+    const j = await r.json();
+    if (!j.ok){
+     
+      if (j.error === "NOT_LOGGED_IN") {
+        window.location.href = "/login";
+        return null;
+      }
+      alert("Error loading cart: " + (j.error || "UNKNOWN"));
+      return null;
+    }
+    return j;
+  }
+
+  async function apiUpdateItem(productId, qty){
+    const r = await fetch("/api/cart/update", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ product_id: productId, qty: qty })
+    });
+    return r.json();
+  }
+
+  async function apiRemoveItem(productId){
+    const r = await fetch("/api/cart/remove", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ product_id: productId })
+    });
+    return r.json();
+  }
+
+ 
+  function updateCartCountFromItems(items){
+    const el = document.getElementById("cart-count");
+    if (!el) return;
+    const count = (items || []).reduce((s, it) => s + Number(it.quantity || 0), 0);
+    el.textContent = count;
+  }
+
+  async function renderCart(){
+    const container = document.getElementById('cartContainer');
+    const summary = document.getElementById('cartSummary');
+    const totalEl = document.getElementById('cartTotal');
+
+    const data = await apiGetCart();
+    if (!data) return;
+
+    const items = data.items || [];
+    const total = Number(data.total || 0);
+
+    if (!items.length){
+      container.innerHTML = `
+        <div class="empty">
+          سلة المشتريات فارغة حالياً.
+          <div style="margin-top:14px;">
+            <a class="go-btn" href="{{ url_for('books') }}">
+              <i class="fas fa-book"></i> تصفح الكتب
+            </a>
+          </div>
+        </div>
+      `;
+      summary.style.display = 'none';
+      updateCartCountFromItems(items);
+      return;
+    }
+
+    const rows = items.map((it) => {
+      const price = Number(it.unit_price || 0);
+      const qty = Number(it.quantity || 0);
+      const line = Number(it.line_total || (price * qty));
+
+      return `
+        <tr data-pid="${it.product_id}">
+          <td>${it.name || ''}</td>
+          <td>${it.product_type || ''}</td>
+          <td>${money(price)} ILS</td>
+          <td>
+            <div class="qty-controls">
+              <button class="qty-btn" onclick="changeQty(${it.product_id}, ${qty - 1})">-</button>
+              <div class="qty-box">${qty}</div>
+              <button class="qty-btn" onclick="changeQty(${it.product_id}, ${qty + 1})">+</button>
+            </div>
+          </td>
+          <td>${money(line)} ILS</td>
+          <td>
+            <button class="danger-btn" onclick="removeItem(${it.product_id})">حذف</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    container.innerHTML = `
+      <table class="cart-table">
+        <thead>
+          <tr>
+            <th>المنتج</th>
+            <th>النوع</th>
+            <th>السعر</th>
+            <th>الكمية</th>
+            <th>المجموع</th>
+            <th>إزالة</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+    `;
+
+    totalEl.textContent = money(total);
+    summary.style.display = 'flex';
+    updateCartCountFromItems(items);
+  }
+
+  async function changeQty(productId, newQty){
+ 
+    const j = await apiUpdateItem(productId, newQty);
+    if (!j.ok){
+      alert("Error updating item: " + (j.error || "UNKNOWN"));
+      return;
+    }
+    await renderCart();
+  }
+
+  async function removeItem(productId){
+    const j = await apiRemoveItem(productId);
+    if (!j.ok){
+      alert("Error removing item: " + (j.error || "UNKNOWN"));
+      return;
+    }
+    await renderCart();
+  }
+
+  async function clearCart(){
+    if (!confirm('هل تريد تفريغ السلة؟')) return;
+
+    const data = await apiGetCart();
+    if (!data) return;
+
+    const items = data.items || [];
+
+    for (const it of items){
+      await apiRemoveItem(it.product_id);
+    }
+    await renderCart();
+  }
+
+  document.addEventListener('DOMContentLoaded', renderCart);
+</script>
+{% endblock %}

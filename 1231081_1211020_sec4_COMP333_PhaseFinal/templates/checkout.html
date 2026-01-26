@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}مكتبة بيرزيت - إتمام الشراء{% endblock %}
+
+{% block extra_head %}
+<style>
+  .wrap{
+    max-width: 1100px;
+    margin: 2rem auto;
+    background:#fff;
+    border-radius:14px;
+    padding: 1.5rem;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+  }
+  .title{
+    font-size:1.6rem;
+    color:#1a365d;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom: 1rem;
+  }
+  .sub{
+    color:#666;
+    margin-bottom: 1rem;
+  }
+  .table{
+    width:100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+  }
+  .table th, .table td{
+    padding:12px;
+    border-bottom:1px solid #eee;
+    text-align:right;
+    vertical-align:middle;
+  }
+  .table th{
+    background:#f8f9fa;
+    color:#1a365d;
+    font-weight:800;
+  }
+  .summary{
+    margin-top: 1rem;
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap: 10px;
+    border-top:1px solid #eee;
+    padding-top: 1rem;
+  }
+  .total{
+    font-size: 1.2rem;
+    font-weight:900;
+    color:#1a365d;
+  }
+  .btns{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .btn{
+    border:none;
+    border-radius:10px;
+    padding: 10px 16px;
+    cursor:pointer;
+    font-weight:700;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+  }
+  .btn-primary{ background:#1a365d; color:#fff; }
+  .btn-primary:hover{ background:#14304f; }
+  .btn-muted{ background:#f1f3f5; color:#333; }
+  .btn-danger{ background:#dc3545; color:#fff; }
+  .empty{
+    padding:2rem;
+    text-align:center;
+    color:#666;
+    border:1px dashed #ddd;
+    border-radius: 12px;
+    margin-top: 1rem;
+  }
+  .note{
+    margin-top: 1rem;
+    color:#666;
+    font-size:.95rem;
+    line-height:1.6;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrap">
+  <div class="title">
+    <i class="fas fa-credit-card"></i>
+    <span>إتمام الشراء</span>
+  </div>
+
+  {% if not items %}
+    <div class="empty">
+      السلة فارغة — لا يوجد شيء لإتمام الشراء.
+      <div style="margin-top:14px;">
+        <a class="btn btn-primary" href="{{ url_for('books') }}">
+          <i class="fas fa-book"></i> تصفح الكتب
+        </a>
+      </div>
+    </div>
+  {% else %}
+
+    <div class="sub">
+      رقم الطلب المؤقت (السلة): <b>#{{ order_id }}</b>
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th>المنتج</th>
+          <th>النوع</th>
+          <th>سعر الوحدة</th>
+          <th>الكمية</th>
+          <th>المجموع</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for it in items %}
+        <tr>
+          <td>{{ it.name }}</td>
+          <td>{{ it.product_type }}</td>
+          <td>{{ "%.2f"|format(it.unit_price) }} ILS</td>
+          <td>{{ it.quantity }}</td>
+          <td>{{ "%.2f"|format(it.line_total) }} ILS</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="summary">
+      <div class="total">الإجمالي: {{ "%.2f"|format(total) }} ILS</div>
+
+      <div class="btns">
+        <a class="btn btn-muted" href="{{ url_for('cart') }}">
+          <i class="fas fa-shopping-cart"></i> رجوع للسلة
+        </a>
+
+     
+        <form method="POST" action="{{ url_for('checkout') }}" style="margin:0;">
+          <button class="btn btn-primary" type="submit">
+            <i class="fas fa-check"></i> تأكيد الطلب
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="note">
+      بالضغط على “تأكيد الطلب” سيتم تحويل حالة الطلب من <b>pending</b> إلى <b>processing</b>.
+    </div>
+
+  {% endif %}
+</div>
+{% endblock %}

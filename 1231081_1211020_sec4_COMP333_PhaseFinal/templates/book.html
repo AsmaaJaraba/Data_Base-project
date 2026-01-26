@@ -1,0 +1,923 @@
+{# templates/book.html #}
+{% extends "base.html" %}
+
+{% block title %}مكتبة بيرزيت - الكتب الجامعية{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  /* ✅ نفس الـ CSS اللي عندك بالضبط (ما غيّرته) */
+  :root {
+    --primary-blue: #1a365d;
+    --secondary-blue: #2d50a3;
+    --accent-gold: #d4af37;
+    --light-gray: #f8f9fa;
+    --dark-gray: #333;
+    --white: #ffffff;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --pink: #e83e8c;
+  }
+
+  .main-content { max-width: 1400px; margin: 0 auto; padding: 2rem 1rem; }
+  .hero-section {
+    text-align: center;
+    padding: 3rem 1rem;
+    background: linear-gradient(rgba(26, 54, 93, 0.9), rgba(26, 54, 93, 0.9)),
+      url('https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
+    background-size: cover;
+    background-position: center;
+    border-radius: 20px;
+    color: var(--white);
+    margin-bottom: 3rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  }
+  .hero-title { font-size: 3rem; margin-bottom: 1rem; color: var(--accent-gold); }
+  .hero-subtitle { font-size: 1.3rem; margin-bottom: 2rem; opacity: 0.9; max-width: 800px; margin-left: auto; margin-right: auto; }
+
+  .search-box { max-width: 600px; margin: 2rem auto 0; position: relative; }
+  .search-box input {
+    width: 100%;
+    padding: 18px 25px;
+    padding-inline-end: 60px;
+    border-radius: 50px;
+    border: none;
+    font-size: 1.1rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+  .search-box i {
+    position: absolute;
+    inset-inline-end: 25px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    font-size: 1.2rem;
+  }
+
+  .product-card {
+    position: relative;
+    border: 1px solid #e9ecef;
+    border-radius: 15px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    background: var(--white);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  }
+  .product-card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1); }
+
+  .product-image {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(45deg, #6a89cc, #b8e994);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5rem;
+    color: white;
+    position: relative;
+  }
+
+  .product-badges {
+    position: absolute;
+    top: 15px;
+    inset-inline-start: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 2;
+  }
+  .badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .badge-new { background: var(--success); }
+  .badge-bestseller { background: var(--warning); color: var(--dark-gray); }
+  .badge-discount { background: var(--danger); }
+
+  .product-actions-top {
+    position: absolute;
+    top: 15px;
+    inset-inline-end: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 3;
+  }
+  .action-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--primary-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  }
+  .action-btn:hover { transform: scale(1.1); background: var(--white); }
+  .action-btn.fav-btn.active { background: var(--pink); color: white; }
+  .action-btn.cart-btn:hover { background: var(--success); color: white; }
+  .action-btn.order-btn:hover { background: var(--primary-blue); color: white; }
+
+  .product-info { padding: 1.5rem; }
+  .product-category {
+    display: inline-block;
+    background: var(--light-gray);
+    color: #666;
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    margin-bottom: 10px;
+  }
+  .product-title { font-size: 1.3rem; margin-bottom: 10px; color: var(--primary-blue); font-weight: 600; line-height: 1.4; }
+  .product-description { color: #666; font-size: 0.95rem; margin-bottom: 15px; line-height: 1.5; }
+
+  .product-rating { display: flex; align-items: center; gap: 8px; margin-bottom: 15px; }
+  .stars { color: var(--warning); }
+  .reviews { color: #666; font-size: 0.9rem; }
+
+  .product-price { font-size: 1.5rem; font-weight: 700; color: var(--primary-blue); margin: 15px 0; }
+
+  .product-stock { display: flex; align-items: center; gap: 8px; color: #666; font-size: 0.9rem; margin-bottom: 20px; }
+  .stock-available { color: var(--success); font-weight: 600; }
+  .stock-low { color: var(--warning); font-weight: 600; }
+  .stock-unavailable { color: var(--danger); font-weight: 600; }
+
+  .product-actions-bottom { display: flex; gap: 10px; margin-top: 15px; }
+
+  .btn {
+    flex: 1;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.95rem;
+  }
+  .btn-cart { background: var(--success); color: white; }
+  .btn-cart:hover { background: #218838; }
+  .btn-order { background: var(--primary-blue); color: white; }
+  .btn-order:hover { background: #0f2545; }
+  .btn-details { background: var(--light-gray); color: var(--primary-blue); border: 2px solid #dee2e6; }
+  .btn-details:hover { background: #e9ecef; }
+
+  .quick-order-modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-content {
+    background: white;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 500px;
+    padding: 2rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+  .modal-title { font-size: 1.5rem; color: var(--primary-blue); }
+  .close-modal { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666; }
+
+  .form-group { margin-bottom: 1.5rem; }
+  .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--primary-blue); }
+  .form-control { width: 100%; padding: 12px 15px; border: 2px solid #dee2e6; border-radius: 10px; font-size: 1rem; }
+  .form-actions { display: flex; gap: 10px; margin-top: 2rem; }
+
+  .notification {
+    position: fixed;
+    top: 20px;
+    inset-inline-end: 20px;
+    padding: 15px 25px;
+    border-radius: 10px;
+    color: white;
+    font-weight: 600;
+    z-index: 10000;
+    animation: slideIn 0.3s ease;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  }
+  .notification.success { background: var(--success); }
+  .notification.error { background: var(--danger); }
+  .notification.info { background: var(--primary-blue); }
+
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  .filters-section, .books-section {
+    background: var(--white);
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 3rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  }
+  .filters-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap; }
+  .section-title { font-size: 1.8rem; color: var(--primary-blue); }
+
+  .filter-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+  .filter-btn {
+    padding: 10px 20px;
+    border: 2px solid var(--light-gray);
+    background: var(--white);
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+  }
+  .filter-btn:hover, .filter-btn.active { background: var(--primary-blue); color: var(--white); border-color: var(--primary-blue); }
+
+  .filters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-top: 1.5rem; }
+  .filter-group { background: var(--light-gray); padding: 1.5rem; border-radius: 10px; }
+  .filter-group h4 { color: var(--primary-blue); margin-bottom: 1rem; font-size: 1.1rem; }
+
+  .books-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; }
+
+  @media (max-width: 768px) {
+    .hero-title { font-size: 2rem; }
+    .hero-subtitle { font-size: 1.1rem; }
+    .books-grid { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+    .product-actions-bottom { flex-direction: column; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+
+  <section class="hero-section">
+    <h1 class="hero-title">الكتب الجامعية</h1>
+    <p class="hero-subtitle">
+      اكتشف أكبر مجموعة من الكتب الجامعية والمراجع العلمية في مختلف التخصصات الأكاديمية
+    </p>
+
+    <div class="search-box">
+      <input id="searchInput" type="text" placeholder="ابحث عن كتاب، مؤلف، أو تخصص...">
+      <i class="fas fa-search"></i>
+    </div>
+  </section>
+
+  <section class="filters-section">
+    <div class="filters-header">
+      <h2 class="section-title">تصفية الكتب</h2>
+      <div class="filter-buttons">
+        {# ✅ مرري event للزر #}
+        <button class="filter-btn active" onclick="filterBooks('all', event)">الكل</button>
+        <button class="filter-btn" onclick="filterBooks('bestsellers', event)">الأكثر مبيعاً</button>
+        <button class="filter-btn" onclick="filterBooks('new', event)">جديد</button>
+        <button class="filter-btn" onclick="filterBooks('discount', event)">عروض خاصة</button>
+        <button class="filter-btn" onclick="filterBooks('engineering', event)">الهندسة</button>
+        <button class="filter-btn" onclick="filterBooks('medicine', event)">الطب</button>
+      </div>
+    </div>
+
+    <div class="filters-grid">
+      <div class="filter-group">
+        <h4>التخصص</h4>
+        <div class="filter-options">
+          <div class="filter-option">
+            <input type="checkbox" id="engineering" onchange="filterByCategory('هندسة', this.checked)">
+            <label for="engineering">الهندسة</label>
+          </div>
+          <div class="filter-option">
+            <input type="checkbox" id="medicine" onchange="filterByCategory('طب', this.checked)">
+            <label for="medicine">الطب</label>
+          </div>
+          <div class="filter-option">
+            <input type="checkbox" id="science" onchange="filterByCategory('علوم', this.checked)">
+            <label for="science">العلوم</label>
+          </div>
+          <div class="filter-option">
+            <input type="checkbox" id="arts" onchange="filterByCategory('الآداب', this.checked)">
+            <label for="arts">الآداب</label>
+          </div>
+          <div class="filter-option">
+            <input type="checkbox" id="management" onchange="filterByCategory('إدارة', this.checked)">
+            <label for="management">إدارة</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <h4>نوع الطلب</h4>
+        <div class="filter-options">
+          <div class="filter-option">
+            <input type="radio" name="type" id="type1" onchange="filterByType('purchase')">
+            <label for="type1">شراء</label>
+          </div>
+          <div class="filter-option">
+            <input type="radio" name="type" id="type2" onchange="filterByType('rental')">
+            <label for="type2">إستعارة</label>
+          </div>
+          <div class="filter-option">
+            <input type="radio" name="type" id="type3" onchange="filterByType('ebook')">
+            <label for="type3">كتاب إلكتروني</label>
+          </div>
+          <div class="filter-option">
+            <input type="radio" name="type" id="type0" onchange="filterByType('all')" checked>
+            <label for="type0">الكل</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <h4>التقييم</h4>
+        <div class="filter-options">
+          <div class="filter-option">
+            <input type="radio" name="rating" id="rating1" onchange="filterByRating(4)">
+            <label for="rating1">4 نجوم فأكثر</label>
+          </div>
+          <div class="filter-option">
+            <input type="radio" name="rating" id="rating2" onchange="filterByRating(3)">
+            <label for="rating2">3 نجوم فأكثر</label>
+          </div>
+          <div class="filter-option">
+            <input type="radio" name="rating" id="rating0" onchange="filterByRating(0)" checked>
+            <label for="rating0">الكل</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="books-section">
+    <div class="books-header">
+      <div>
+        <h2 class="section-title">كتب مميزة</h2>
+        <p class="books-count">
+          عرض <span id="books-count">{{ products|length if products else 0 }}</span> كتاب
+        </p>
+      </div>
+
+      <select class="sort-select" onchange="sortBooks(this.value)">
+        <option value="newest">الأحدث أولاً</option>
+        <option value="price-low">السعر: منخفض إلى مرتفع</option>
+        <option value="price-high">السعر: مرتفع إلى منخفض</option>
+        <option value="rating">الأعلى تقييماً</option>
+      </select>
+    </div>
+
+    <div class="books-grid" id="books-grid">
+      {% if products and products|length > 0 %}
+        {% for product in products %}
+          <div class="product-card"
+               data-product-id="{{ product.get('id', 0) }}"
+               data-category="{{ product.get('category', '') }}"
+               data-price="{{ product.get('price', 0) }}"
+               data-rating="{{ product.get('rating', 0) }}"
+               data-new="{{ 1 if product.get('is_new') else 0 }}"
+               data-bestseller="{{ 1 if product.get('is_bestseller') else 0 }}"
+               data-discount="{{ product.get('discount', 0) }}"
+               data-type="{{ product.get('order_type','purchase') }}">
+
+            <div class="product-badges">
+              {% if product.get('is_new') %}
+                <span class="badge badge-new"><i class="fas fa-star"></i> جديد</span>
+              {% endif %}
+              {% if product.get('is_bestseller') %}
+                <span class="badge badge-bestseller"><i class="fas fa-crown"></i> الأكثر مبيعاً</span>
+              {% endif %}
+              {% if product.get('discount') %}
+                <span class="badge badge-discount"><i class="fas fa-percentage"></i> خصم {{ product.get('discount') }}%</span>
+              {% endif %}
+            </div>
+
+            <div class="product-actions-top">
+              <button class="action-btn fav-btn" onclick="toggleFavorite({{ product.get('id', 0) }})">
+                <i class="fas fa-heart"></i>
+              </button>
+              <button class="action-btn cart-btn" onclick="addToCart({{ product.get('id', 0) }})">
+                <i class="fas fa-cart-plus"></i>
+              </button>
+              <button class="action-btn order-btn" onclick="openQuickOrder({{ product.get('id', 0) }}, '{{ product.get('name', '') }}')">
+                <i class="fas fa-book-open"></i>
+              </button>
+            </div>
+
+            <div class="product-image">
+              {% if product.get('icon') %}
+                <div style="font-size: 4rem;">{{ product.get('icon') }}</div>
+              {% else %}
+                <i class="fas fa-book"></i>
+              {% endif %}
+            </div>
+
+            <div class="product-info">
+              <span class="product-category">{{ product.get('category', 'غير مصنف') }}</span>
+              <h3 class="product-title">{{ product.get('name', 'بدون اسم') }}</h3>
+
+              {% if product.get('description') %}
+                <p class="product-description">{{ product.get('description')[:100] }}{% if product.get('description')|length > 100 %}...{% endif %}</p>
+              {% endif %}
+
+              {% set rating = product.get('rating', 0)|int %}
+              {% if rating > 0 %}
+                <div class="product-rating">
+                  <div class="stars">
+                    {% for i in range(5) %}
+                      {% if i < rating %}
+                        <i class="fas fa-star"></i>
+                      {% else %}
+                        <i class="far fa-star"></i>
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                  {% if product.get('reviews') %}
+                    <span class="reviews">({{ product.get('reviews') }})</span>
+                  {% endif %}
+                </div>
+              {% endif %}
+
+              <div class="product-price">
+                {% if product.get('discount') %}
+                  <span style="text-decoration: line-through; color: #666; font-size: 1rem; margin-inline-end: 10px;">
+                    ${{ product.get('price', 0)|float }}
+                  </span>
+                  <span style="color: var(--danger);">
+                    ${{ ((product.get('price', 0)|float) * (1 - (product.get('discount', 0)|float)/100))|round(2) }}
+                  </span>
+                {% else %}
+                  ${{ product.get('price', 0)|float }}
+                {% endif %}
+              </div>
+
+              <div class="product-stock">
+                <i class="fas fa-box"></i>
+                {% set stock = product.get('stock', 0) %}
+                {% if stock > 10 %}
+                  <span class="stock-available">متوفر ({{ stock }})</span>
+                {% elif stock > 0 %}
+                  <span class="stock-low">كمية محدودة ({{ stock }})</span>
+                {% else %}
+                  <span class="stock-unavailable">غير متوفر حالياً</span>
+                {% endif %}
+              </div>
+
+              <div class="product-actions-bottom">
+                <button class="btn btn-cart" onclick="addToCart({{ product.get('id', 0) }})">
+                  <i class="fas fa-cart-plus"></i> أضف للسلة
+                </button>
+                <button class="btn btn-order" onclick="openQuickOrder({{ product.get('id', 0) }}, '{{ product.get('name', '') }}')">
+                  <i class="fas fa-book-open"></i> طلب استعارة
+                </button>
+
+                {# ✅ لازم pid لأنه بالباك اند عندك def product_details(pid) #}
+                <a href="{{ url_for('product_details', pid=product.get('id', 0)) }}" class="btn btn-details">
+                  <i class="fas fa-info-circle"></i> التفاصيل
+                </a>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <i class="fas fa-book fa-3x" style="color: #ddd; margin-bottom: 20px;"></i>
+          <h3>لا يوجد كتب لعرضها حالياً</h3>
+          <p>جرب تغيير معايير البحث أو الفلترة</p>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+</div>
+
+
+<div id="quickOrderModal" class="quick-order-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title" id="orderModalTitle">طلب استعارة كتاب</h3>
+      <button class="close-modal" onclick="closeQuickOrder()">&times;</button>
+    </div>
+
+    <form id="orderForm" onsubmit="submitOrder(event)">
+      <input type="hidden" id="orderProductId">
+
+      <div class="form-group">
+        <label for="orderType">نوع الطلب:</label>
+        <select class="form-control" id="orderType" required>
+          <option value="">اختر نوع الطلب</option>
+          <option value="rental">إستعارة (14 يوم)</option>
+          <option value="rental_extended">إستعارة ممتدة (30 يوم)</option>
+          <option value="purchase">شراء</option>
+          <option value="reservation">حجز فقط</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="pickupBranch">فرع الاستلام:</label>
+        <select class="form-control" id="pickupBranch" required>
+          <option value="">اختر فرع الاستلام</option>
+          <option value="main">الفرع الرئيسي - الحرم الجامعي</option>
+          <option value="engineering">فرع الهندسة</option>
+          <option value="medical">فرع الطب</option>
+          <option value="library">مكتبة الجامعة المركزية</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="pickupDate">تاريخ الاستلام المفضل:</label>
+        <input type="date" class="form-control" id="pickupDate" required>
+      </div>
+
+      <div class="form-group">
+        <label for="notes">ملاحظات إضافية:</label>
+        <textarea class="form-control" id="notes" rows="3" placeholder="أي ملاحظات أو طلبات خاصة..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-top: 20px;">
+          <h4 style="margin-bottom: 10px;">ملخص الطلب:</h4>
+          <div id="orderSummary"></div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-order" style="flex: 2;">
+          <i class="fas fa-check-circle"></i> تأكيد الطلب
+        </button>
+        <button type="button" class="btn btn-details" onclick="closeQuickOrder()" style="flex: 1;">
+          إلغاء
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="notificationArea"></div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let favorites = JSON.parse(localStorage.getItem('birzeit-favorites')) || [];
+
+async function toggleFavorite(productId) {
+  try {
+    const res = await fetch('/api/favorites/toggle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product_id: productId }),
+      credentials: 'same-origin'
+    });
+
+    if (res.status === 401) {
+      showNotification('يجب تسجيل الدخول لاستخدام المفضلة', 'error');
+      return;
+    }
+
+    const data = await res.json();
+    if (!data.ok) {
+      showNotification(data.error || 'حدث خطأ', 'error');
+      return;
+    }
+
+    const btn = document.querySelector(`[onclick="toggleFavorite(${productId})"]`);
+
+    if (data.favorited) {
+      if (!favorites.includes(productId)) favorites.push(productId);
+      if (btn) btn.classList.add('active');
+      showNotification('تمت إضافة الكتاب إلى المفضلة ❤️', 'success');
+    } else {
+      favorites = favorites.filter(id => id !== productId);
+      if (btn) btn.classList.remove('active');
+      showNotification('تمت إزالة الكتاب من المفضلة', 'info');
+    }
+
+    localStorage.setItem('birzeit-favorites', JSON.stringify(favorites));
+
+  
+    if (typeof updateFavoritesCount === "function") updateFavoritesCount();
+
+  } catch (e) {
+    showNotification('تعذر الاتصال بالسيرفر', 'error');
+  }
+}
+// =========================
+
+// =========================
+function showNotification(message, type = 'success') {
+  const area = document.getElementById('notificationArea');
+  if (!area) return;
+  const n = document.createElement('div');
+  n.className = `notification ${type}`;
+  n.textContent = message;
+  area.appendChild(n);
+  setTimeout(() => n.remove(), 3000);
+}
+
+// =========================
+
+// =========================
+function syncFavoriteButtons() {
+  document.querySelectorAll('.product-card').forEach(card => {
+    const pid = parseInt(card.dataset.productId || "0", 10);
+    const btn = card.querySelector('.fav-btn');
+    if (!btn) return;
+    if (favorites.includes(pid)) btn.classList.add('active');
+    else btn.classList.remove('active');
+  });
+}
+
+function toggleFavorite(productId) {
+  productId = parseInt(productId, 10);
+  const isFav = favorites.includes(productId);
+
+  if (isFav) {
+    favorites = favorites.filter(id => id !== productId);
+    showNotification('تمت إزالة الكتاب من المفضلة', 'info');
+  } else {
+    favorites.push(productId);
+    showNotification('تمت إضافة الكتاب إلى المفضلة ❤️', 'success');
+  }
+
+  localStorage.setItem('birzeit-favorites', JSON.stringify(favorites));
+  syncFavoriteButtons();
+
+
+  fetch('/api/favorites/toggle', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ product_id: productId }),
+    credentials: 'same-origin'
+  }).catch(() => {});
+}
+
+// =========================
+
+// =========================
+async function addToCart(productId, quantity = 1) {
+  try {
+    const res = await fetch('/api/cart/add', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product_id: productId, qty: quantity })
+    });
+
+    if (res.status === 401) {
+      showNotification('يجب تسجيل الدخول لإضافة منتجات إلى السلة', 'error');
+      return;
+    }
+
+    const data = await res.json();
+    if (data.ok) {
+      showNotification('تمت إضافة الكتاب إلى السلة ✅', 'success');
+      updateCartCount();
+    } else {
+      showNotification(data.error || 'حدث خطأ', 'error');
+    }
+  } catch (e) {
+    showNotification('تعذر الاتصال بالسيرفر', 'error');
+  }
+}
+
+async function updateCartCount() {
+  const el = document.getElementById('cart-count');
+  if (!el) return;
+
+  try {
+    const res = await fetch('/api/cart', { credentials: 'same-origin' });
+    if (res.status === 401) { el.textContent = 0; return; }
+
+    const data = await res.json();
+    if (!data.ok) { el.textContent = 0; return; }
+
+    const totalQty = (data.items || []).reduce((sum, it) =>
+      sum + (parseInt(it.quantity || 0, 10) || 0), 0
+    );
+
+    el.textContent = totalQty;
+  } catch (e) {
+    el.textContent = 0;
+  }
+}
+
+// =========================
+
+// =========================
+function openQuickOrder(productId, productName) {
+  const modal = document.getElementById('quickOrderModal');
+  document.getElementById('orderModalTitle').textContent = `طلب استعارة: ${productName}`;
+  document.getElementById('orderProductId').value = productId;
+
+  const today = new Date();
+  const pickupDate = new Date(today);
+  pickupDate.setDate(today.getDate() + 2);
+  document.getElementById('pickupDate').valueAsDate = pickupDate;
+
+  document.getElementById('orderSummary').innerHTML = `
+    <p><strong>الكتاب:</strong> ${productName}</p>
+    <p><strong>تاريخ الطلب:</strong> ${today.toLocaleDateString('ar-SA')}</p>
+    <p><strong>تاريخ الاستلام المقترح:</strong> ${pickupDate.toLocaleDateString('ar-SA')}</p>
+    <p><strong>مدة الإستعارة الافتراضية:</strong> 14 يوم</p>
+  `;
+
+  modal.style.display = 'flex';
+}
+
+function closeQuickOrder() {
+  document.getElementById('quickOrderModal').style.display = 'none';
+  document.getElementById('orderForm').reset();
+}
+
+async function submitOrder(event) {
+  event.preventDefault();
+
+  const payload = {
+    product_id: document.getElementById('orderProductId').value,
+    order_type: document.getElementById('orderType').value,
+    pickup_branch: document.getElementById('pickupBranch').value,
+    pickup_date: document.getElementById('pickupDate').value,
+    notes: document.getElementById('notes').value
+  };
+
+  try {
+    const res = await fetch('/api/orders/create', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.status === 401) { showNotification('يجب تسجيل الدخول لإنشاء طلب', 'error'); return; }
+
+    const data = await res.json();
+    if (data.ok || data.success) {
+      showNotification(`تم إنشاء طلبك بنجاح! رقم الطلب: ${data.order_id}`, 'success');
+      closeQuickOrder();
+    } else {
+      showNotification(data.error || 'حدث خطأ في إنشاء الطلب', 'error');
+    }
+  } catch (e) {
+    showNotification('تعذر الاتصال بالسيرفر', 'error');
+  }
+}
+
+// =========================
+
+// =========================
+function getCards() {
+  return Array.from(document.querySelectorAll('.product-card'));
+}
+
+function isVisible(card) {
+  return card.style.display !== 'none';
+}
+
+function updateBooksCount() {
+  const countEl = document.getElementById('books-count');
+  if (!countEl) return;
+  countEl.textContent = getCards().filter(isVisible).length;
+}
+
+function performSearch(query) {
+  const q = query.toLowerCase().trim();
+  getCards().forEach(card => {
+    const text = card.textContent.toLowerCase();
+    card.style.display = text.includes(q) ? 'block' : 'none';
+  });
+  updateBooksCount();
+}
+
+function filterBooks(filter, ev) {
+  document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+  if (ev && ev.target) ev.target.classList.add('active');
+
+  getCards().forEach(card => {
+    const category = (card.dataset.category || '');
+    const isNew = (card.dataset.new === '1');
+    const isBest = (card.dataset.bestseller === '1');
+    const discount = parseFloat(card.dataset.discount || '0');
+
+    let ok = true;
+
+    if (filter === 'engineering') ok = category.includes('هندسة');
+    else if (filter === 'medicine') ok = category.includes('طب');
+    else if (filter === 'new') ok = isNew;
+    else if (filter === 'bestsellers') ok = isBest;
+    else if (filter === 'discount') ok = discount > 0;
+    else ok = true;
+
+    card.style.display = ok ? 'block' : 'none';
+  });
+
+  updateBooksCount();
+}
+
+function filterByCategory(categoryName, checked) {
+
+  const active = Array.from(document.querySelectorAll('#engineering,#medicine,#science,#arts,#management'))
+    .filter(x => x.checked)
+    .map(x => {
+      if (x.id === 'engineering') return 'هندسة';
+      if (x.id === 'medicine') return 'طب';
+      if (x.id === 'science') return 'علوم';
+      if (x.id === 'arts') return 'الآداب';
+      if (x.id === 'management') return 'إدارة';
+      return '';
+    })
+    .filter(Boolean);
+
+
+  if (active.length === 0) {
+    getCards().forEach(card => card.style.display = 'block');
+    updateBooksCount();
+    return;
+  }
+
+  getCards().forEach(card => {
+    const cat = card.dataset.category || '';
+    const ok = active.some(a => cat.includes(a));
+    card.style.display = ok ? 'block' : 'none';
+  });
+  updateBooksCount();
+}
+
+function filterByType(type) {
+
+  if (type === 'all') {
+    getCards().forEach(card => card.style.display = 'block');
+    updateBooksCount();
+    return;
+  }
+  getCards().forEach(card => {
+    const t = card.dataset.type || 'purchase';
+    card.style.display = (t === type) ? 'block' : 'none';
+  });
+  updateBooksCount();
+}
+
+function filterByRating(minRating) {
+  minRating = parseInt(minRating, 10) || 0;
+  getCards().forEach(card => {
+    const r = parseFloat(card.dataset.rating || '0');
+    card.style.display = (r >= minRating) ? 'block' : 'none';
+  });
+  updateBooksCount();
+}
+
+function sortBooks(mode) {
+  const grid = document.getElementById('books-grid');
+  if (!grid) return;
+
+  const cards = getCards();
+
+ 
+  const visible = cards.filter(isVisible);
+  const hidden = cards.filter(c => !isVisible(c));
+
+  visible.sort((a, b) => {
+    const pa = parseFloat(a.dataset.price || '0');
+    const pb = parseFloat(b.dataset.price || '0');
+    const ra = parseFloat(a.dataset.rating || '0');
+    const rb = parseFloat(b.dataset.rating || '0');
+    const ida = parseInt(a.dataset.productId || '0', 10);
+    const idb = parseInt(b.dataset.productId || '0', 10);
+
+    if (mode === 'price-low') return pa - pb;
+    if (mode === 'price-high') return pb - pa;
+    if (mode === 'rating') return rb - ra;
+   
+    return idb - ida;
+  });
+
+
+  [...visible, ...hidden].forEach(card => grid.appendChild(card));
+}
+
+// =========================
+// Init
+// =========================
+document.addEventListener('DOMContentLoaded', function() {
+  syncFavoriteButtons();
+
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) searchInput.addEventListener('input', () => performSearch(searchInput.value));
+
+  updateBooksCount();
+  updateCartCount();
+
+  const modal = document.getElementById('quickOrderModal');
+  if (modal) modal.addEventListener('click', e => { if (e.target === modal) closeQuickOrder(); });
+});
+</script>
+{% endblock %}

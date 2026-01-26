@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>طلبات التوريد - مكتبة بيرزيت</title>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        .orders-container {
+            padding: 20px;
+        }
+        
+        .filters-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .filter-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+        
+        .filter-item {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .orders-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            border-top: 4px solid;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .stat-card.pending { border-top-color: #ffc107; }
+        .stat-card.ordered { border-top-color: #17a2b8; }
+        .stat-card.delivered { border-top-color: #28a745; }
+        .stat-card.cancelled { border-top-color: #dc3545; }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .orders-table-container {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .orders-table th,
+        .orders-table td {
+            padding: 1rem;
+            text-align: right;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .orders-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-ordered { background: #d1ecf1; color: #0c5460; }
+        .status-shipped { background: #cce5ff; color: #004085; }
+        .status-delivered { background: #d4edda; color: #155724; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+        
+        .priority-badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+        
+        .priority-low { background: #d4edda; color: #155724; }
+        .priority-medium { background: #fff3cd; color: #856404; }
+        .priority-high { background: #f8d7da; color: #721c24; }
+        .priority-critical { background: #dc3545; color: white; }
+        
+        .action-btn {
+            padding: 0.3rem 0.6rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-left: 0.3rem;
+        }
+        
+        .action-btn.view { background: #17a2b8; color: white; }
+        .action-btn.edit { background: #ffc107; color: #212529; }
+        .action-btn.delete { background: #dc3545; color: white; }
+        .action-btn.receive { background: #28a745; color: white; }
+        
+        .action-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #ddd;
+        }
+        
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        .new-order-btn {
+            background: #003366;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .new-order-btn:hover {
+            background: #00509E;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- الشريط الجانبي -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar">
+                <div class="sidebar-sticky pt-3">
+                    <h6 class="sidebar-heading px-3 mt-4 mb-1 text-muted">
+                        <span>إدارة المخزون</span>
+                    </h6>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('inventory_management') }}">
+                                <i class="fas fa-warehouse"></i>
+                                لوحة المخزون
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{{ url_for('stock_orders') }}">
+                                <i class="fas fa-shopping-cart"></i>
+                                طلبات التوريد
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('stock_alerts') }}">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                التنبيهات
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('suppliers') }}">
+                                <i class="fas fa-truck"></i>
+                                الموردين
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('inventory_reports') }}">
+                                <i class="fas fa-chart-bar"></i>
+                                التقارير
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- المحتوى الرئيسي -->
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
+                <div class="orders-container">
+                    <!-- العنوان والأزرار -->
+                    <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">
+                            <i class="fas fa-shopping-cart"></i>
+                            طلبات التوريد
+                        </h1>
+                        <button class="new-order-btn" onclick="showNewOrderModal()">
+                            <i class="fas fa-plus"></i>
+                            طلب توريد جديد
+                        </button>
+                    </div>
+
+                    <!-- إحصائيات سريعة -->
+                    <div class="orders-stats">
+                        <div class="stat-card pending">
+                            <div class="stat-icon">
+                                <i class="fas fa-clock text-warning"></i>
+                            </div>
+                            <div class="stat-value" id="pendingCount">3</div>
+                            <div class="stat-label">قيد الانتظار</div>
+                        </div>
+                        
+                        <div class="stat-card ordered">
+                            <div class="stat-icon">
+                                <i class="fas fa-check-circle text-info"></i>
+                            </div>
+                            <div class="stat-value" id="orderedCount">5</div>
+                            <div class="stat-label">تم الطلب</div>
+                        </div>
+                        
+                        <div class="stat-card delivered">
+                            <div class="stat-icon">
+                                <i class="fas fa-truck text-success"></i>
+                            </div>
+                            <div class="stat-value" id="deliveredCount">12</div>
+                            <div class="stat-label">تم التوصيل</div>
+                        </div>
+                        
+                        <div class="stat-card cancelled">
+                            <div class="stat-icon">
+                                <i class="fas fa-times-circle text-danger"></i>
+                            </div>
+                            <div class="stat-value" id="cancelledCount">2</div>
+                            <div class="stat-label">ملغاة</div>
+                        </div>
+                    </div>
+
+                    <!-- فلاتر البحث -->
+                    <div class="filters-card">
+                        <h5>فلترة الطلبات</h5>
+                        <div class="filter-group mt-3">
+                            <div class="filter-item">
+                                <label>حالة الطلب</label>
+                                <select class="form-control" id="filterStatus">
+                                    <option value="">جميع الحالات</option>
+                                    <option value="pending">قيد الانتظار</option>
+                                    <option value="ordered">تم الطلب</option>
+                                    <option value="shipped">تم الشحن</option>
+                                    <option value="delivered">تم التوصيل</option>
+                                    <option value="cancelled">ملغي</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-item">
+                                <label>المورد</label>
+                                <select class="form-control" id="filterSupplier">
+                                    <option value="">جميع الموردين</option>
+                                    <option value="1">مخزن بيرزيت الرئيسي</option>
+                                    <option value="2">مورد الكتب الوطنية</option>
+                                    <option value="3">شركة القرطاسية المتحدة</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-item">
+                                <label>من تاريخ</label>
+                                <input type="date" class="form-control" id="filterFromDate">
+                            </div>
+                            
+                            <div class="filter-item">
+                                <label>إلى تاريخ</label>
+                                <input type="date" class="form-control" id="filterToDate">
+                            </div>
+                            
+                            <div class="filter-item">
+                                <button class="btn btn-primary" onclick="applyFilters()">
+                                    <i class="fas fa-filter"></i> تطبيق الفلاتر
+                                </button>
+                                <button class="btn btn-secondary ml-2" onclick="resetFilters()">
+                                    <i class="fas fa-redo"></i> إعادة تعيين
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- جدول الطلبات -->
+                    <div class="orders-table-container">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="m-0">جميع طلبات التوريد</h5>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-primary" onclick="exportOrders()">
+                                    <i class="fas fa-download"></i> تصدير
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary ml-2" onclick="printOrders()">
+                                    <i class="fas fa-print"></i> طباعة
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <table class="orders-table">
+                            <thead>
+                                <tr>
+                                    <th>رقم الطلب</th>
+                                    <th>المنتج</th>
+                                    <th>الكمية</th>
+                                    <th>المورد</th>
+                                    <th>تاريخ الطلب</th>
+                                    <th>تاريخ التوصيل</th>
+                                    <th>الأولوية</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordersTableBody">
+                                <!-- سيتم ملؤها بواسطة JavaScript -->
+                            </tbody>
+                        </table>
+                        
+                        <div id="emptyState" class="empty-state" style="display: none;">
+                            <i class="fas fa-shopping-cart"></i>
+                            <h4>لا توجد طلبات توريد</h4>
+                            <p>ابدأ بإضافة طلب توريد جديد</p>
+                            <button class="btn btn-primary" onclick="showNewOrderModal()">
+                                <i class="fas fa-plus"></i> إضافة طلب جديد
+                            </button>
+                        </div>
+                        
+                        <!-- ترقيم الصفحات -->
+                        <div class="pagination-container">
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination">
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1">السابق</a>
+                                    </li>
+                                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">التالي</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal طلب توريد جديد -->
+    <div class="modal fade" id="newOrderModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">طلب توريد جديد</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="newOrderForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>اختر المنتج</label>
+                                    <select class="form-control" id="productSelect" required>
+                                        <option value="">اختر منتج...</option>
+                                        <!-- سيتم ملؤها بالمنتجات -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>الكمية</label>
+                                    <input type="number" class="form-control" id="quantity" min="1" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>المورد</label>
+                                    <select class="form-control" id="supplierSelect" required>
+                                        <option value="">اختر مورد...</option>
+                                        <!-- سيتم ملؤها بالموردين -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>أولوية الطلب</label>
+                                    <select class="form-control" id="prioritySelect" required>
+                                        <option value="low">منخفضة</option>
+                                        <option value="medium" selected>متوسطة</option>
+                                        <option value="high">عالية</option>
+                                        <option value="critical">حرجة</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>تاريخ الطلب المتوقع</label>
+                                    <input type="date" class="form-control" id="expectedDate">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>سعر الوحدة</label>
+                                    <input type="number" class="form-control" id="unitPrice" step="0.01">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>ملاحظات</label>
+                            <textarea class="form-control" id="notes" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">إلغاء</button>
+                    <button type="button" class="btn btn-primary" onclick="submitNewOrder()">حفظ الطلب</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal تفاصيل الطلب -->
+    <div class="modal fade" id="orderDetailsModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">تفاصيل الطلب #<span id="detailOrderId"></span></h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="orderDetailsContent">
+                    <!-- سيتم ملؤها بواسطة JavaScript -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">إغلاق</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // بيانات الطلبات (في الواقع تأتي من قاعدة البيانات)
+        const stockOrders = [
+            {
+                id: 1001,
+                product: "كتاب التفاضل والتكامل",
+                productId: 1,
+                quantity: 50,
+                supplier: "مخزن بيرزيت الرئيسي",
+                supplierId: 1,
+                orderDate: "2024-01-15",
+                expectedDelivery: "2024-01-22",
+                actualDelivery: null,
+                priority: "critical",
+                status: "pending",
+                unitPrice: 20.5,
+                totalPrice: 1025,
+                notes: "مطلوب بشكل عاجل"
+            },
+            {
+                id: 1002,
+                product: "ورق A4",
+                productId: 3,
+                quantity: 100,
+                supplier: "شركة القرطاسية المتحدة",
+                supplierId: 3,
+                orderDate: "2024-01-14",
+                expectedDelivery: "2024-01-18",
+                actualDelivery: "2024-01-17",
+                priority: "high",
+                status: "delivered",
+                unitPrice: 12.0,
+                totalPrice: 1200,
+                notes: ""
+            },
+            {
+                id: 1003,
+                product: "أقلام حبر",
+                productId: 5,
+                quantity: 30,
+                supplier: "مورد الكتب الوطنية",
+                supplierId: 2,
+                orderDate: "2024-01-12",
+                expectedDelivery: "2024-01-19",
+                actualDelivery: null,
+                priority: "medium",
+                status: "ordered",
+                unitPrice: 8.5,
+                totalPrice: 255,
+                notes: ""
+            },
+            {
+                id: 1004,
+                product: "برايات",
+                productId: 8,
+                quantity: 20,
+                supplier: "مطبعة الجامعة",
+                supplierId: 4,
+                orderDate: "2024-01-10",
+                expectedDelivery: "2024-01-15",
+                actualDelivery: "2024-01-14",
+                priority: "low",
+                status: "delivered",
+                unitPrice: 5.0,
+                totalPrice: 100,
+                notes: "تم الاستلام مبكراً"
+            },
+            {
+                id: 1005,
+                product: "ألوان خشبية",
+                productId: 12,
+                quantity: 25,
+                supplier: "شركة القرطاسية المتحدة",
+                supplierId: 3,
+                orderDate: "2024-01-08",
+                expectedDelivery: "2024-01-12",
+                actualDelivery: null,
+                priority: "high",
+                status: "shipped",
+                unitPrice: 15.0,
+                totalPrice: 375,
+                notes: "تم شحن الطلب"
+            },
+            {
+                id: 1006,
+                product: "دفاتر جامعية",
+                productId: 4,
+                quantity: 80,
+                supplier: "مخزن بيرزيت الرئيسي",
+                supplierId: 1,
+                orderDate: "2024-01-05",
+                expectedDelivery: "2024-01-10",
+                actualDelivery: null,
+                priority: "medium",
+                status: "cancelled",
+                unitPrice: 6.0,
+                totalPrice: 480,
+                notes: "تم الإلغاء بناءً على طلب المورد"
+            }
+        ];
+
+       
+        const products = [
+            { id: 1, name: "كتاب التفاضل والتكامل", stock: 3 },
+            { id: 3, name: "ورق A4", stock: 2 },
+            { id: 5, name: "أقلام حبر", stock: 8 },
+            { id: 8, name: "برايات", stock: 5 },
+            { id: 12, name: "ألوان خشبية", stock: 7 }
+        ];
+
+        const suppliers = [
+            { id: 1, name: "مخزن بيرزيت الرئيسي" },
+            { id: 2, name: "مورد الكتب الوطنية" },
+            { id: 3, name: "شركة القرطاسية المتحدة" },
+            { id: 4, name: "مطبعة الجامعة" }
+        ];
+
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            renderOrdersTable();
+            updateStats();
+            populateProductSelect();
+            populateSupplierSelect();
+        });
+
+      
+        function renderOrdersTable(filteredOrders = stockOrders) {
+            const tableBody = document.getElementById('ordersTableBody');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (filteredOrders.length === 0) {
+                tableBody.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            
+            let html = '';
+            filteredOrders.forEach(order => {
+                const statusText = {
+                    'pending': 'قيد الانتظار',
+                    'ordered': 'تم الطلب',
+                    'shipped': 'تم الشحن',
+                    'delivered': 'تم التوصيل',
+                    'cancelled': 'ملغي'
+                };
+                
+                const statusClass = {
+                    'pending': 'status-pending',
+                    'ordered': 'status-ordered',
+                    'shipped': 'status-shipped',
+                    'delivered': 'status-delivered',
+                    'cancelled': 'status-cancelled'
+                };
+                
+                const priorityText = {
+                    'low': 'منخفضة',
+                    'medium': 'متوسطة',
+                    'high': 'عالية',
+                    'critical': 'حرجة'
+                };
+                
+                const priorityClass = {
+                    'low': 'priority-low',
+                    'medium': 'priority-medium',
+                    'high': 'priority-high',
+                    'critical': 'priority-critical'
+                };
+                
+                html += `
+                    <tr>
+                        <td>#${order.id}</td>
+                        <td>${order.product}</td>
+                        <td>${order.quantity}</td>
+                        <td>${order.supplier}</td>
+                        <td>${formatDate(order.orderDate)}</td>
+                        <td>${order.actualDelivery ? formatDate(order.actualDelivery) : 
+                              order.expectedDelivery ? formatDate(order.expectedDelivery) : '--'}</td>
+                        <td><span class="priority-badge ${priorityClass[order.priority]}">
+                            ${priorityText[order.priority]}
+                        </span></td>
+                        <td><span class="status-badge ${statusClass[order.status]}">
+                            ${statusText[order.status]}
+                        </span></td>
+                        <td>
+                            <button class="action-btn view" onclick="viewOrderDetails(${order.id})">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            ${order.status === 'pending' ? `
+                            <button class="action-btn edit" onclick="editOrder(${order.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete" onclick="cancelOrder(${order.id})">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            ` : ''}
+                            ${order.status === 'shipped' ? `
+                            <button class="action-btn receive" onclick="receiveOrder(${order.id})">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            ` : ''}
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tableBody.innerHTML = html;
+        }
+
+       
+        function updateStats() {
+            const pendingCount = stockOrders.filter(o => o.status === 'pending').length;
+            const orderedCount = stockOrders.filter(o => o.status === 'ordered').length;
+            const deliveredCount = stockOrders.filter(o => o.status === 'delivered').length;
+            const cancelledCount = stockOrders.filter(o => o.status === 'cancelled').length;
+            
+            document.getElementById('pendingCount').textContent = pendingCount;
+            document.getElementById('orderedCount').textContent = orderedCount;
+            document.getElementById('deliveredCount').textContent = deliveredCount;
+            document.getElementById('cancelledCount').textContent = cancelledCount;
+        }
+
+       
+        function applyFilters() {
+            const status = document.getElementById('filterStatus').value;
+            const supplier = document.getElementById('filterSupplier').value;
+            const fromDate = document.getElementById('filterFromDate').value;
+            const toDate = document.getElementById('filterToDate').value;
+            
+            let filtered = [...stockOrders];
+            
+            if (status) {
+                filtered = filtered.filter(order => order.status === status);
+            }
+            
+            if (supplier) {
+                filtered = filtered.filter(order => order.supplierId == supplier);
+            }
+            
+            if (fromDate) {
+                filtered = filtered.filter(order => order.orderDate >= fromDate);
+            }
+            
+            if (toDate) {
+                filtered = filtered.filter(order => order.orderDate <= toDate);
+            }
+            
+            renderOrdersTable(filtered);
+        }
+
+ 
+        function resetFilters() {
+            document.getElementById('filterStatus').value = '';
+            document.getElementById('filterSupplier').value = '';
+            document.getElementById('filterFromDate').value = '';
+            document.getElementById('filterToDate').value = '';
+            
+            renderOrdersTable();
+        }
+
+       
+        function showNewOrderModal() {
+            $('#newOrderModal').modal('show');
+        }
+
+    
+        function populateProductSelect() {
+            const select = document.getElementById('productSelect');
+            select.innerHTML = '<option value="">اختر منتج...</option>';
+            
+            products.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.textContent = `${product.name} (المخزون: ${product.stock})`;
+                select.appendChild(option);
+            });
+        }
+
+      
+        function populateSupplierSelect() {
+            const select = document.getElementById('supplierSelect');
+            select.innerHTML = '<option value="">اختر مورد...</option>';
+            
+            suppliers.forEach(supplier => {
+                const option = document.createElement('option');
+                option.value = supplier.id;
+                option.textContent = supplier.name;
+                select.appendChild(option);
+            });
+        }
+
+        function submitNewOrder() {
+            const productSelect = document.getElementById('productSelect');
+            const productId = productSelect.value;
+            const product = products.find(p => p.id == productId);
+            
+            if (!product) {
+                alert('الرجاء اختيار منتج');
+                return;
+            }
+            
+            const supplierSelect = document.getElementById('supplierSelect');
+            const supplierId = supplierSelect.value;
+            const supplier = suppliers.find(s => s.id == supplierId);
+            
+            if (!supplier) {
+                alert('الرجاء اختيار مورد');
+                return;
+            }
+            
+            const quantity = document.getElementById('quantity').value;
+            const priority = document.getElementById('prioritySelect').value;
+            const expectedDate = document.getElementById('expectedDate').value;
+            const unitPrice = document.getElementById('unitPrice').value;
+            const notes = document.getElementById('notes').value;
+            
+        
+            const newOrder = {
+                id: Math.max(...stockOrders.map(o => o.id)) + 1,
+                product: product.name,
+                productId: product.id,
+                quantity: parseInt(quantity),
+                supplier: supplier.name,
+                supplierId: supplier.id,
+                orderDate: new Date().toISOString().split('T')[0],
+                expectedDelivery: expectedDate,
+                actualDelivery: null,
+                priority: priority,
+                status: 'pending',
+                unitPrice: parseFloat(unitPrice) || 0,
+                totalPrice: parseInt(quantity) * (parseFloat(unitPrice) || 0),
+                notes: notes
+            };
+            
+            stockOrders.unshift(newOrder);
+            
+          
+            renderOrdersTable();
+            updateStats();
+            
+      
+            $('#newOrderModal').modal('hide');
+            document.getElementById('newOrderForm').reset();
+            
+            alert(`تم إنشاء طلب توريد جديد #${newOrder.id}`);
+        }
+
+   
+        function viewOrderDetails(orderId) {
+            const order = stockOrders.find(o => o.id === orderId);
+            if (!order) return;
+            
+            document.getElementById('detailOrderId').textContent = order.id;
+            
+            const statusText = {
+                'pending': 'قيد الانتظار',
+                'ordered': 'تم الطلب',
+                'shipped': 'تم الشحن',
+                'delivered': 'تم التوصيل',
+                'cancelled': 'ملغي'
+            };
+            
+            const priorityText = {
+                'low': 'منخفضة',
+                'medium': 'متوسطة',
+                'high': 'عالية',
+                'critical': 'حرجة'
+            };
+            
+            const content = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>المنتج:</strong> ${order.product}</p>
+                        <p><strong>الكمية:</strong> ${order.quantity}</p>
+                        <p><strong>سعر الوحدة:</strong> $${order.unitPrice}</p>
+                        <p><strong>السعر الإجمالي:</strong> $${order.totalPrice}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>المورد:</strong> ${order.supplier}</p>
+                        <p><strong>تاريخ الطلب:</strong> ${formatDate(order.orderDate)}</p>
+                        <p><strong>تاريخ التوصيل المتوقع:</strong> ${order.expectedDelivery ? formatDate(order.expectedDelivery) : '--'}</p>
+                        <p><strong>تاريخ التوصيل الفعلي:</strong> ${order.actualDelivery ? formatDate(order.actualDelivery) : '--'}</p>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <p><strong>الأولوية:</strong> <span class="priority-badge">${priorityText[order.priority]}</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>الحالة:</strong> <span class="status-badge">${statusText[order.status]}</span></p>
+                    </div>
+                </div>
+                ${order.notes ? `
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <p><strong>ملاحظات:</strong></p>
+                        <p>${order.notes}</p>
+                    </div>
+                </div>
+                ` : ''}
+            `;
+            
+            document.getElementById('orderDetailsContent').innerHTML = content;
+            $('#orderDetailsModal').modal('show');
+        }
+
+       
+        function editOrder(orderId) {
+            alert(`تعديل الطلب #${orderId}`);
+       
+        }
+
+    
+        function cancelOrder(orderId) {
+            if (confirm('هل أنت متأكد من إلغاء هذا الطلب؟')) {
+                const order = stockOrders.find(o => o.id === orderId);
+                if (order) {
+                    order.status = 'cancelled';
+                    renderOrdersTable();
+                    updateStats();
+                    alert('تم إلغاء الطلب بنجاح');
+                }
+            }
+        }
+
+      
+        function receiveOrder(orderId) {
+            const order = stockOrders.find(o => o.id === orderId);
+            if (order) {
+                order.status = 'delivered';
+                order.actualDelivery = new Date().toISOString().split('T')[0];
+                renderOrdersTable();
+                updateStats();
+                alert('تم تسجيل استلام الطلب بنجاح');
+            }
+        }
+
+        
+        function exportOrders() {
+            alert('جاري تصدير بيانات الطلبات...');
+          
+        }
+
+      
+        function printOrders() {
+            window.print();
+        }
+
+
+        function formatDate(dateString) {
+            if (!dateString) return '--';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ar-SA');
+        }
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+</body>
+</html>

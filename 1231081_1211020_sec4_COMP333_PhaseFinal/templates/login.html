@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-ar="تسجيل الدخول - مكتبة بيرزيت" data-en="Login - Birzeit Library">تسجيل الدخول - مكتبة بيرزيت</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary-blue: #003366;
+      --secondary-blue: #00509E;
+      --accent-green: #28A745;
+      --accent-orange: #FF6B35;
+      --light-gray: #F5F5F5;
+      --dark-gray: #333333;
+      --white: #FFFFFF;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: linear-gradient(135deg, #003366 0%, #00509E 100%); min-height:100vh; display:flex; justify-content:center; align-items:center; padding:2rem; }
+    body[dir="ltr"] { font-family:'Segoe UI', Arial, sans-serif; }
+
+    .language-switcher { position:absolute; top:20px; left:20px; background:var(--white); border-radius:25px; box-shadow:0 5px 15px rgba(0,0,0,0.1); overflow:hidden; display:flex; }
+    .lang-btn { padding:10px 20px; background:none; border:none; cursor:pointer; font-weight:600; font-size:.9rem; display:flex; align-items:center; gap:8px; }
+    .lang-btn.active { background:var(--primary-blue); color:var(--white); }
+
+    .login-container { display:flex; width:100%; max-width:1000px; min-height:600px; background:var(--white); border-radius:20px; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,0.2); }
+    .login-left { flex:1; background: linear-gradient(rgba(0,51,102,0.9), rgba(0,80,158,0.9)),
+      url('https://images.unsplash.com/photo-1521587760476-6c12a4b040da?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
+      background-size:cover; background-position:center; color:var(--white); padding:3rem; display:flex; flex-direction:column; justify-content:center;
+    }
+    .login-left h1 { font-size:2.5rem; margin-bottom:1.5rem; font-weight:700; }
+    .login-left p { font-size:1.2rem; line-height:1.8; margin-bottom:2rem; opacity:.9; }
+    .features { list-style:none; margin-top:2rem; }
+    .features li { margin-bottom:1rem; display:flex; align-items:center; gap:10px; font-size:1.1rem; }
+    .features i { color:var(--accent-green); font-size:1.2rem; }
+
+    .login-right { flex:1; padding:3rem; display:flex; flex-direction:column; justify-content:center; }
+
+    .login-header { text-align:center; margin-bottom:1.5rem; }
+    .logo { display:flex; align-items:center; justify-content:center; gap:15px; margin-bottom:1.2rem; }
+    .logo img { height:60px; width:auto; }
+    .logo h2 { font-size:2rem; color:var(--primary-blue); }
+    .login-header h3 { font-size:1.8rem; color:var(--dark-gray); margin-bottom:.5rem; }
+    .login-header p { color:#666; font-size:1.1rem; }
+
+  
+    .flash-wrap { margin: 0 0 1.2rem 0; }
+    .flash {
+      background: #ffe7e7;
+      color: #a40000;
+      border: 1px solid #ffb6b6;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: .95rem;
+      margin-bottom: 10px;
+    }
+    .flash.success {
+      background: #e7ffef;
+      color: #0a6b2b;
+      border-color: #b6ffd0;
+    }
+
+    .user-type-selector { display:flex; gap:1rem; margin-bottom:1.5rem; background:#f8f9fa; padding:.5rem; border-radius:10px; }
+    .user-type-btn { flex:1; padding:12px; border:none; background:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:1rem; display:flex; align-items:center; justify-content:center; gap:8px; }
+    .user-type-btn.active { background:var(--primary-blue); color:var(--white); box-shadow:0 5px 15px rgba(0,51,102,0.2); }
+
+    .login-form { display:none; }
+    .login-form.active { display:block; animation: fadeIn .5s ease; }
+    @keyframes fadeIn { from {opacity:0; transform:translateY(20px);} to {opacity:1; transform:translateY(0);} }
+
+    .form-group { margin-bottom:1.2rem; }
+    .form-label { display:block; margin-bottom:.5rem; font-weight:500; color:var(--dark-gray); }
+    .form-control { width:100%; padding:12px 15px; border:2px solid #e0e0e0; border-radius:8px; font-size:1rem; }
+    .form-control:focus { outline:none; border-color:var(--primary-blue); box-shadow:0 0 0 3px rgba(0,51,102,0.1); }
+
+    .password-container { position:relative; }
+    .toggle-password { position:absolute; left:15px; top:50%; transform:translateY(-50%); background:none; border:none; color:#666; cursor:pointer; font-size:1.2rem; }
+
+    .remember-forgot { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem; }
+    .remember-me { display:flex; align-items:center; gap:8px; cursor:pointer; }
+    .remember-me input { width:18px; height:18px; cursor:pointer; }
+
+    .forgot-password { color:var(--primary-blue); text-decoration:none; font-weight:500; }
+    .forgot-password:hover { color:var(--secondary-blue); text-decoration:underline; }
+
+    .btn-login { width:100%; padding:15px; background:var(--primary-blue); color:var(--white); border:none; border-radius:8px;
+      font-size:1.1rem; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;
+    }
+    .btn-login:hover { background:var(--secondary-blue); transform:translateY(-2px); box-shadow:0 10px 20px rgba(0,51,102,0.2); }
+
+    .back-home { margin-top: 1rem; text-align:center; }
+    .back-home a { color: var(--primary-blue); text-decoration:none; font-weight:600; }
+    .back-home a:hover { text-decoration: underline; }
+
+    @media (max-width: 900px) {
+      .login-container { flex-direction:column; max-width:500px; }
+      .login-left { padding:2rem; min-height:300px; }
+      .login-left h1 { font-size:2rem; }
+    }
+    @media (max-width: 576px) {
+      body { padding:1rem; }
+      .login-left, .login-right { padding:2rem 1.5rem; }
+      .language-switcher { top:10px; left:10px; }
+      .user-type-selector { flex-direction:column; }
+    }
+  </style>
+</head>
+
+<body dir="rtl">
+
+  <div class="language-switcher">
+    <button class="lang-btn active" id="lang-ar" data-lang="ar"><i class="fas fa-language"></i><span>العربية</span></button>
+    <button class="lang-btn" id="lang-en" data-lang="en"><i class="fas fa-language"></i><span>English</span></button>
+  </div>
+
+  <div class="login-container">
+    <div class="login-left">
+      <h1 data-ar="مرحباً بعودتك" data-en="Welcome Back">مرحباً بعودتك</h1>
+      <p data-ar="سجل الدخول للوصول إلى حسابك والاستفادة من جميع مميزات مكتبة بيرزيت الرقمية"
+         data-en="Sign in to access your account and enjoy all features of Birzeit Digital Library">
+        سجل الدخول للوصول إلى حسابك والاستفادة من جميع مميزات مكتبة بيرزيت الرقمية
+      </p>
+      <ul class="features">
+        <li><i class="fas fa-check-circle"></i><span data-ar="تصفح وشراء الكتب والقرطاسية" data-en="Browse and buy books & stationery">تصفح وشراء الكتب والقرطاسية</span></li>
+        <li><i class="fas fa-check-circle"></i><span data-ar="طلب خدمات الطباعة والتجليد" data-en="Order printing and binding services">طلب خدمات الطباعة والتجليد</span></li>
+        <li><i class="fas fa-check-circle"></i><span data-ar="الوصول للكتب الإلكترونية" data-en="Access e-books library">الوصول للكتب الإلكترونية</span></li>
+        <li><i class="fas fa-check-circle"></i><span data-ar="تتبع طلباتك وتوصيلها" data-en="Track your orders and delivery">تتبع طلباتك وتوصيلها</span></li>
+      </ul>
+    </div>
+
+    <div class="login-right">
+      <div class="login-header">
+        <div class="logo">
+          <img src="https://cdn-icons-png.flaticon.com/512/2232/2232688.png" alt="مكتبة بيرزيت" data-ar-alt="مكتبة بيرزيت" data-en-alt="Birzeit Library">
+          <h2 data-ar="مكتبة بيرزيت" data-en="Birzeit Library">مكتبة بيرزيت</h2>
+        </div>
+        <h3 data-ar="تسجيل الدخول" data-en="Sign In">تسجيل الدخول</h3>
+        <p data-ar="اختر نوع حسابك وأدخل بيانات الدخول" data-en="Choose your account type and enter login details">اختر نوع حسابك وأدخل بيانات الدخول</p>
+      </div>
+
+      <!-- Flash messages from Flask -->
+      <div class="flash-wrap">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="flash {{ 'success' if category == 'success' else '' }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+      </div>
+
+      <!-- User Type Selector -->
+      <div class="user-type-selector">
+        <button class="user-type-btn active" id="student-btn" type="button" data-type="student">
+          <i class="fas fa-user-graduate"></i>
+          <span data-ar="طالب/زائر" data-en="Student/Visitor">طالب/زائر</span>
+        </button>
+        <button class="user-type-btn" id="admin-btn" type="button" data-type="admin">
+          <i class="fas fa-user-shield"></i>
+          <span data-ar="مدير/إداري" data-en="Admin/Manager">مدير/إداري</span>
+        </button>
+      </div>
+
+    
+      <form class="login-form active" id="login-form" method="POST" action="{{ url_for('login', next=next or request.args.get('next','')) }}">
+      
+        <input type="hidden" name="next" value="{{ next or request.args.get('next','') }}">
+
+        <!-- role hidden -->
+        <input type="hidden" name="role" id="role-input" value="{{ role or 'student' }}">
+
+        <div class="form-group">
+          <label class="form-label" for="email" data-ar="البريد الإلكتروني" data-en="Email">البريد الإلكتروني</label>
+          <input type="email" id="email" name="email" class="form-control"
+                 value="{{ email or '' }}"
+                 placeholder="example@email.com"
+                 data-ar-placeholder="example@email.com"
+                 data-en-placeholder="example@email.com"
+                 required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password" data-ar="كلمة المرور" data-en="Password">كلمة المرور</label>
+          <div class="password-container">
+            <input type="password" id="password" name="password" class="form-control"
+                   placeholder="أدخل كلمة المرور"
+                   data-ar-placeholder="أدخل كلمة المرور"
+                   data-en-placeholder="Enter your password"
+                   required>
+            <button type="button" class="toggle-password" id="toggle-password" aria-label="Toggle password visibility">
+              <i class="far fa-eye" id="eye-icon"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="register-link" style="text-align:center; margin-top:15px;">
+          <p style="color:#666; margin-bottom:10px;">
+            ليس لديك حساب؟
+          </p>
+          <a href="{{ url_for('register') }}"
+             style="
+              display:inline-block;
+              padding:12px 30px;
+              background-color:#28A745;
+              color:#fff;
+              text-decoration:none;
+              border-radius:8px;
+              font-weight:600;
+             ">
+            <i class="fas fa-user-plus"></i>
+            إنشاء حساب جديد
+          </a>
+        </div>
+
+        <div class="remember-forgot">
+          <label class="remember-me">
+            <input type="checkbox" id="remember">
+            <span data-ar="تذكرني" data-en="Remember me">تذكرني</span>
+          </label>
+          <a href="#" class="forgot-password" data-ar="نسيت كلمة المرور؟" data-en="Forgot password?">نسيت كلمة المرور؟</a>
+        </div>
+
+        <button type="submit" class="btn-login" id="login-btn">
+          <i class="fas fa-sign-in-alt"></i>
+          <span data-ar="تسجيل الدخول" data-en="Sign In">تسجيل الدخول</span>
+        </button>
+      </form>
+
+      <div class="back-home">
+        <a href="{{ url_for('index') }}" data-ar="العودة للرئيسية" data-en="Back to Home">العودة للرئيسية</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+      const langArBtn = document.getElementById('lang-ar');
+      const langEnBtn = document.getElementById('lang-en');
+      let currentLang = localStorage.getItem('birzeit-lang') || 'ar';
+
+      function applyLanguage(lang) {
+        document.body.dir = lang === 'ar' ? 'rtl' : 'ltr';
+        langArBtn.classList.toggle('active', lang === 'ar');
+        langEnBtn.classList.toggle('active', lang === 'en');
+
+        document.querySelectorAll('[data-ar], [data-en]').forEach(el => {
+          const text = el.getAttribute(`data-${lang}`);
+          if (text) el.textContent = text;
+        });
+
+        document.querySelectorAll('[data-ar-placeholder], [data-en-placeholder]').forEach(el => {
+          const ph = el.getAttribute(`data-${lang}-placeholder`);
+          if (ph) el.placeholder = ph;
+        });
+
+        document.querySelectorAll('[data-ar-alt], [data-en-alt]').forEach(el => {
+          const alt = el.getAttribute(`data-${lang}-alt`);
+          if (alt) el.alt = alt;
+        });
+
+        const titleEl = document.querySelector('title');
+        const titleText = lang === 'ar' ? titleEl.getAttribute('data-ar') : titleEl.getAttribute('data-en');
+        if (titleText) titleEl.textContent = titleText;
+
+        localStorage.setItem('birzeit-lang', lang);
+        currentLang = lang;
+      }
+
+      applyLanguage(currentLang);
+      langArBtn.addEventListener('click', () => applyLanguage('ar'));
+      langEnBtn.addEventListener('click', () => applyLanguage('en'));
+
+ 
+      const studentBtn = document.getElementById('student-btn');
+      const adminBtn = document.getElementById('admin-btn');
+      const roleInput = document.getElementById('role-input');
+      const loginBtnTextSpan = document.querySelector('#login-btn span');
+      const loginBtnIcon = document.querySelector('#login-btn i');
+
+      function setRole(role) {
+        roleInput.value = role;
+
+        studentBtn.classList.toggle('active', role === 'student');
+        adminBtn.classList.toggle('active', role === 'admin');
+
+        if (role === 'admin') {
+          loginBtnIcon.className = 'fas fa-user-shield';
+          if (loginBtnTextSpan) {
+            loginBtnTextSpan.setAttribute('data-ar', 'تسجيل الدخول كمدير');
+            loginBtnTextSpan.setAttribute('data-en', 'Login as Admin');
+          }
+        } else {
+          loginBtnIcon.className = 'fas fa-sign-in-alt';
+          if (loginBtnTextSpan) {
+            loginBtnTextSpan.setAttribute('data-ar', 'تسجيل الدخول كطالب');
+            loginBtnTextSpan.setAttribute('data-en', 'Login as Student');
+          }
+        }
+        applyLanguage(currentLang);
+      }
+
+ 
+      setRole(roleInput.value || 'student');
+
+      studentBtn.addEventListener('click', () => setRole('student'));
+      adminBtn.addEventListener('click', () => setRole('admin'));
+
+   
+      const passInput = document.getElementById('password');
+      const toggleBtn = document.getElementById('toggle-password');
+      const eyeIcon = document.getElementById('eye-icon');
+
+      toggleBtn.addEventListener('click', function() {
+        const isHidden = passInput.getAttribute('type') === 'password';
+        passInput.setAttribute('type', isHidden ? 'text' : 'password');
+
+        if (eyeIcon) {
+          eyeIcon.classList.toggle('fa-eye', !isHidden);
+          eyeIcon.classList.toggle('fa-eye-slash', isHidden);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
